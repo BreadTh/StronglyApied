@@ -63,13 +63,19 @@ namespace BreadTh.StronglyApied
                 
                 foreach(FieldInfo fieldInfo in objectType.GetFields().Where((FieldInfo fieldInfo) => fieldInfo.IsPublic))
                 {
+                    int errorCountBeforeParse = errors.Count;
                     dynamic value = TryParse(fieldInfo, token.SelectToken(fieldInfo.Name), $"{path}{(string.IsNullOrEmpty(path) ? "" : ".")}{fieldInfo.Name}");
 
                     if(fieldInfo.FieldType.IsArray && value != null)
                     {
-                        Array dynamicallyTypedArray = Array.CreateInstance(fieldInfo.FieldType.GetElementType(), value.Length);
-                        Array.Copy(value, dynamicallyTypedArray, value.Length);
-                        fieldInfo.SetValue(result, dynamicallyTypedArray);
+                        if (errorCountBeforeParse != errors.Count)
+                            fieldInfo.SetValue(result, null);
+                        else 
+                        {
+                            Array dynamicallyTypedArray = Array.CreateInstance(fieldInfo.FieldType.GetElementType(), value.Length);
+                            Array.Copy(value, dynamicallyTypedArray, value.Length);
+                            fieldInfo.SetValue(result, dynamicallyTypedArray);
+                        }
                     }
                     else
                         fieldInfo.SetValue(result, value);
