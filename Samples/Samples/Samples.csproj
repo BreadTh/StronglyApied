@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BreadTh.StronglyApied.csproj" />
-    <ProjectReference Include="..\..\StronglyApied\src\BreadTh.StronglyApied.csproj" />
   </ItemGroup>
 
 </Project>
