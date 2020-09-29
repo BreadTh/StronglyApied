@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples", "Samples\Samples.csproj", "{8F2560DA-BDE0-4061-BC02-1E1954700A76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples", "BreadTh.StronglyApied.Samples\BreadTh.StronglyApied.Samples.csproj", "{8F2560DA-BDE0-4061-BC02-1E1954700A76}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreadTh.StronglyApied", "..\src\BreadTh.StronglyApied.csproj", "{272F1D69-1325-4C18-8BBB-01EE125F9EDA}"
 EndProject
