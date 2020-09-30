@@ -17,12 +17,12 @@ namespace BreadTh.StronglyApied.Attributes
             this.maxValue = maxValue;
         }
 
-        public override TryParseResult TryParse(Type type, JToken token, string path)
+        public override TryParseResult TryParse(Type type, IToken token, string path)
         {
             if(type != typeof(long) && type != typeof(long?))
                 throw new InvalidOperationException($"Fields tagged with JsonInputLongAttribute must be long-type (int64), but the given type was {type.FullName}");
            
-            string value = ((JValue)token).ToString(CultureInfo.InvariantCulture);
+            string value = token.ToString();
             string trimmedValue = value.Trim();
             bool parseSuccessful = long.TryParse(trimmedValue, out long parsedValue);
 

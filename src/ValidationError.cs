@@ -22,8 +22,8 @@ namespace BreadTh.StronglyApied
 
         public static ValidationError Identity() =>
             new ValidationError("", "", "");
-        public static ValidationError InvalidJson(string data) =>
-            new ValidationError("34877d2e-0014-4f6a-a9d7-1b9bdf63a502", "The given body data string is not valid JSON", new { data });
+        public static ValidationError InvalidInputData(string data) =>
+            new ValidationError("34877d2e-0014-4f6a-a9d7-1b9bdf63a502", "The given body data string is not valid JSON or XML", new { data });
 
         public static ValidationError OptionalViolation(string path) =>
             new ValidationError("5f161b44-9f43-40ad-b325-4463e514030b", $"The value at \"{path}\" may not be omitted or set to null/undefined", new { path });
@@ -73,6 +73,11 @@ namespace BreadTh.StronglyApied
         public static ValidationError NotAnArray(string value, string path) =>
             new ValidationError("fd91c75d-775d-4eaa-8c1c-c7bc14e18f3e"
                 ,   $"An array was expected at \"{path}\" but another value-type was provided. (\"{value}\")"
+                ,   new { path, value });
+
+        public static ValidationError NotAnObject(string value, string path) =>
+            new ValidationError("b248e9d3-143b-4de9-9bfe-6529d29aaed3"
+                ,   $"An object was expected at \"{path}\" but another value-type was provided. (\"{value}\")"
                 ,   new { path, value });
         public static ValidationError ArrayTooShort(long actualCount, long minCount, string path) =>
             new ValidationError("18895779-40f7-4e4c-9df6-509c7b33ac53" 

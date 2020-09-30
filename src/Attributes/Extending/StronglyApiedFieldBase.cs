@@ -12,7 +12,7 @@ namespace BreadTh.StronglyApied.Attributes.Extending
             this.optional = optional;
         }
 
-        public abstract TryParseResult TryParse(Type type, JToken token, string path);
+        public abstract TryParseResult TryParse(Type type, IToken token, string path);
 
         public readonly struct TryParseResult
         {

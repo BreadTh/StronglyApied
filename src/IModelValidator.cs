@@ -5,7 +5,7 @@ namespace BreadTh.StronglyApied
 {
     public interface IModelValidator
     {
-        IEnumerable<ValidationError> TryParse<T>(Stream json, out T result);
-        IEnumerable<ValidationError> TryParse<T>(string json, out T result);
+        IEnumerable<ValidationError> TryParse<T>(Stream xmlOrJson, out T result);
+        IEnumerable<ValidationError> TryParse<T>(string xmlOrJson, out T result);
     }
 }

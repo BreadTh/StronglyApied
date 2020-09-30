@@ -13,12 +13,12 @@ namespace BreadTh.StronglyApied.Attributes
     {
         public StronglyApiedOptionAttribute(bool optional = false) : base(optional) { }
 
-        public override TryParseResult TryParse(Type type, JToken token, string path)
+        public override TryParseResult TryParse(Type type, IToken token, string path)
         {
             if(!type.IsEnum)
                 throw new InvalidOperationException($"Fields tagged with JsonInputOptionAttribute must be an enum, but the given type was {type.FullName}");
             
-            string value = ((JValue)token).ToString(CultureInfo.InvariantCulture);
+            string value = token.ToString();
             string trimmedValue = value.Trim();
 
             List<string> enumValues = type.GetFields()
