@@ -127,7 +127,7 @@ namespace Samples
 
             public class ListAttributes
             {
-                [StronglyApiedArray(), StronglyApiedObject()] public Item[] item;
+                [StronglyApiedChild("item"), StronglyApiedArray(), StronglyApiedObject()] public Item[] items;
 
                 public class Item
                 {

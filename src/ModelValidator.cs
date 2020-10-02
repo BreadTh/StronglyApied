@@ -133,8 +133,11 @@ namespace BreadTh.StronglyApied
                 
                 foreach(FieldInfo fieldInfo in objectType.GetFields().Where((FieldInfo fieldInfo) => fieldInfo.IsPublic))
                 {
+                    StronglyApiedRelationBaseAttribute relationAttribute = fieldInfo.GetCustomAttribute<StronglyApiedRelationBaseAttribute>(true);
+                    string fieldName = relationAttribute?.name ?? fieldInfo.Name;
+
                     int errorCountBeforeParse = errors.Count;
-                    dynamic value = DetermineTypeAndMap(fieldInfo, token.GetChild(fieldInfo.Name), token, $"{path}{(string.IsNullOrEmpty(path) ? "" : ".")}{fieldInfo.Name}");
+                    dynamic value = DetermineTypeAndMap(fieldInfo, token.GetChild(fieldName), token, $"{path}{(string.IsNullOrEmpty(path) ? "" : ".")}{fieldName}");
 
                     if(fieldInfo.FieldType.IsArray && value != null)
                     {
@@ -163,7 +166,10 @@ namespace BreadTh.StronglyApied
                 if(arrayAttribute == null)
                     throw new NotImplementedException($"All array fields must be tagged with StronglyApiedArrayAttribute, but none was found at {path}");
 
-                if(parentToken.IsChildAsArrayNullOrUndefined(fieldInfo.Name))
+                StronglyApiedRelationBaseAttribute relationAttribute = fieldInfo.GetCustomAttribute<StronglyApiedRelationBaseAttribute>(true);
+                string fieldName = relationAttribute?.name ?? fieldInfo.Name;
+
+                if(parentToken.IsChildAsArrayNullOrUndefined(fieldName))
                 {
                     if(!arrayAttribute.optional)
                         errors.Add(ValidationError.OptionalViolation(path));
@@ -171,14 +177,14 @@ namespace BreadTh.StronglyApied
                     return null;
                 }
 
-                if(!parentToken.IsChildArray(fieldInfo.Name))
+                if(!parentToken.IsChildArray(fieldName))
                 {
-                    errors.Add(ValidationError.NotAnArray(JsonConvert.SerializeObject(parentToken.GetChildren(fieldInfo.Name).Select(child => child.ToString())), path));
+                    errors.Add(ValidationError.NotAnArray(JsonConvert.SerializeObject(parentToken.GetChildren(fieldName).Select(child => child.ToString())), path));
                     return null;
                 }
                 else
                 {
-                    List<IToken> tokenAsArray = parentToken.GetChildren(fieldInfo.Name).ToList();
+                    List<IToken> tokenAsArray = parentToken.GetChildren(fieldName).ToList();
                     Type childType = fieldInfo.FieldType.GetElementType();
 
                     if (arrayAttribute != null)
@@ -206,10 +212,10 @@ namespace BreadTh.StronglyApied
 
             dynamic MapFieldInArray(FieldInfo fieldInfo, Type type, IToken token, string path)
             {
-                StronglyApiedFieldBase attribute = fieldInfo.GetCustomAttribute<StronglyApiedFieldBase>(true);
+                StronglyApiedFieldBase datatypeAttribute = fieldInfo.GetCustomAttribute<StronglyApiedFieldBase>(true);
                     if(token.IsNullOrUndefinedAsPrimitive())
                     {
-                        if(attribute != null && !attribute.optional)
+                        if(datatypeAttribute != null && !datatypeAttribute.optional)
                             errors.Add(ValidationError.OptionalViolation(path));
                     
                         return null;
@@ -222,10 +228,10 @@ namespace BreadTh.StronglyApied
                 }
                 else
                 {
-                    if(attribute == null)
+                    if(datatypeAttribute == null)
                         throw new InvalidOperationException($"All primitive fields must be tagged with a child of StronglyApiedFieldBase, but none was found at {path}");
 
-                    StronglyApiedFieldBase.TryParseResult tryParseOutcome = attribute.TryParse(type, token.ToString(), path);
+                    StronglyApiedFieldBase.TryParseResult tryParseOutcome = datatypeAttribute.TryParse(type, token.ToString(), path);
 
                     if(tryParseOutcome.status == StronglyApiedFieldBase.TryParseResult.Status.Invalid)
                         errors.Add(tryParseOutcome.error);
@@ -236,13 +242,15 @@ namespace BreadTh.StronglyApied
             dynamic MapFieldInObject(FieldInfo fieldInfo, Type type, IToken parentToken, string path)
             {
                 StronglyApiedRelationBaseAttribute relationAttribute = fieldInfo.GetCustomAttribute<StronglyApiedRelationBaseAttribute>(true);
+                string fieldName = relationAttribute?.name ?? fieldInfo.Name;
                 bool isAttribute = relationAttribute != null && relationAttribute.GetType() == typeof(StronglyApiedAttributeAttribute);
+
 
                 StronglyApiedFieldBase datatypeAttribute = fieldInfo.GetCustomAttribute<StronglyApiedFieldBase>(true);
 
                 if(isAttribute)
                 {
-                    if(parentToken.IsAttributeNullOrUndefined(fieldInfo.Name))
+                    if(parentToken.IsAttributeNullOrUndefined(fieldName))
                     {
                         if(datatypeAttribute != null && !datatypeAttribute.optional)
                             errors.Add(ValidationError.OptionalViolation(path));
@@ -252,7 +260,7 @@ namespace BreadTh.StronglyApied
                 }
                 else
                 {
-                    if(parentToken.IsChildNullOrUndefined(fieldInfo.Name))
+                    if(parentToken.IsChildNullOrUndefined(fieldName))
                     {
                         if(datatypeAttribute != null && !datatypeAttribute.optional)
                             errors.Add(ValidationError.OptionalViolation(path));
@@ -261,9 +269,9 @@ namespace BreadTh.StronglyApied
                     }
                 }
 
-                if(!isAttribute || !parentToken.IsChildPrimitive(fieldInfo.Name))
+                if(!isAttribute || !parentToken.IsChildPrimitive(fieldName))
                 {
-                    errors.Add(ValidationError.NotPrimitive(path, parentToken.GetChildAsText(fieldInfo.Name)));
+                    errors.Add(ValidationError.NotPrimitive(path, parentToken.GetChildAsText(fieldName)));
                     return null;
                 }
                 else
@@ -271,7 +279,7 @@ namespace BreadTh.StronglyApied
                     if(datatypeAttribute == null)
                         throw new InvalidOperationException($"All primitive fields must be tagged with a child of StronglyApiedFieldBaseAttribute, but none was found at {path}");
 
-                    string value = isAttribute ? parentToken.GetAttribute(fieldInfo.Name) : parentToken.GetChild(fieldInfo.Name).ToString();
+                    string value = isAttribute ? parentToken.GetAttribute(fieldName) : parentToken.GetChild(fieldName).ToString();
 
                     StronglyApiedFieldBase.TryParseResult tryParseOutcome = datatypeAttribute.TryParse(type, value, path);
 
