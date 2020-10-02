@@ -100,6 +100,14 @@ namespace Samples
                     <goodOptional1>2</goodOptional1>
                     <goodOptional1></goodOptional1>
                 </listChildren>
+                <stringAttributes good=""value""></stringAttributes>
+                <integerAttributes good=""10""></integerAttributes>
+                <decimalAttributes good=""10.00""></decimalAttributes>
+                <optionAttributes good=""Option1""></optionAttributes>
+                <listAttributes>
+                    <item field=""value1""></item>
+                    <item field=""value2""></item>
+                </listAttributes>
             </root>";
 
         [StronglyApiedRoot(DataModel.XML)]
@@ -111,6 +119,21 @@ namespace Samples
             [StronglyApiedObject()] public OptionChildren optionChildren;
             [StronglyApiedObject()] public ObjectChildren objectChildren;
             [StronglyApiedObject()] public ListChildren listChildren;
+            [StronglyApiedObject()] public StringAttributes stringAttributes;
+            [StronglyApiedObject()] public IntegerAttributes integerAttributes;
+            [StronglyApiedObject()] public DecimalAttributes decimalAttributes;
+            [StronglyApiedObject()] public OptionAttributes optionAttributes;
+            [StronglyApiedObject()] public ListAttributes listAttributes;
+
+            public class ListAttributes
+            {
+                [StronglyApiedArray(), StronglyApiedObject()] public Item[] item;
+
+                public class Item
+                {
+                    [StronglyApiedAttribute(), StronglyApiedString()] public string field;
+                }
+            }
 
             public class StringChildren 
             {
@@ -195,6 +218,36 @@ namespace Samples
                 [StronglyApiedArray(), StronglyApiedLong()]               public long[] bad4;
                 [StronglyApiedArray(), StronglyApiedLong(optional: true)] public long?[] goodOptional1;
                 [StronglyApiedArray(optional: true), StronglyApiedLong()] public long[] goodOptional2;
+            }
+
+            public class StringAttributes
+            {
+                [StronglyApiedAttribute(), StronglyApiedString()]               public string good;
+                [StronglyApiedAttribute(), StronglyApiedString()]               public string bad;
+                [StronglyApiedAttribute(), StronglyApiedString(optional: true)] public string goodOptional;
+            }
+
+            public class IntegerAttributes
+            {
+                [StronglyApiedAttribute(), StronglyApiedLong()]               public long good;
+                [StronglyApiedAttribute(), StronglyApiedLong()]               public long bad;
+                [StronglyApiedAttribute(), StronglyApiedLong(optional: true)] public long? goodOptional;
+            }
+
+            public class DecimalAttributes
+            {
+                [StronglyApiedAttribute(), StronglyApiedDecimal()]               public decimal good;
+                [StronglyApiedAttribute(), StronglyApiedDecimal()]               public decimal bad;
+                [StronglyApiedAttribute(), StronglyApiedDecimal(optional: true)] public decimal goodOptional;
+            }
+
+            public class OptionAttributes
+            {
+                public enum Values { Undefined, Option1, Option2 }
+
+                [StronglyApiedAttribute(), StronglyApiedOption()]               public Values good;
+                [StronglyApiedAttribute(), StronglyApiedOption()]               public Values bad;
+                [StronglyApiedAttribute(), StronglyApiedOption(optional: true)] public Values goodOptional;
             }
         }
 

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Globalization;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
 using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Attributes
@@ -13,12 +11,11 @@ namespace BreadTh.StronglyApied.Attributes
     {
         public StronglyApiedOptionAttribute(bool optional = false) : base(optional) { }
 
-        public override TryParseResult TryParse(Type type, IToken token, string path)
+        public override TryParseResult TryParse(Type type, string value, string path)
         {
             if(!type.IsEnum)
                 throw new InvalidOperationException($"Fields tagged with JsonInputOptionAttribute must be an enum, but the given type was {type.FullName}");
             
-            string value = token.ToString();
             string trimmedValue = value.Trim();
 
             List<string> enumValues = type.GetFields()

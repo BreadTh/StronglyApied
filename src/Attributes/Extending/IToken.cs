@@ -15,7 +15,8 @@ namespace BreadTh.StronglyApied.Attributes.Extending
         IToken GetChild(string name);
         string GetChildAsText(string childName);
         IEnumerable<IToken> GetChildren(string name);
-        IToken GetAttribute(string name);
+        string GetAttribute(string name);
         string ToString();
+        bool IsAttributeNullOrUndefined(string name);
     }
 }

@@ -7,6 +7,6 @@ namespace BreadTh.StronglyApied.Attributes
     [AttributeUsage(AttributeTargets.Field)]
     public sealed class StronglyApiedAttributeAttribute : StronglyApiedRelationBaseAttribute
     {
-        public StronglyApiedAttributeAttribute(string name) : base(name) { }
+        public StronglyApiedAttributeAttribute(string name = null) : base(name) { }
     }
 }

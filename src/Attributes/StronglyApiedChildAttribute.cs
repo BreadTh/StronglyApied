@@ -1,14 +1,11 @@
-﻿using System;
+﻿using BreadTh.StronglyApied.Attributes.Core;
+using System;
 
 namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
-    public sealed class StronglyApiedChildAttribute : Attribute
+    public sealed class StronglyApiedChildAttribute : StronglyApiedRelationBaseAttribute
     {
-        private readonly string name;
-        public StronglyApiedChildAttribute(string name = null)
-        {
-            this.name = name;
-        }
+        public StronglyApiedChildAttribute(string name = null) : base(name) { }
     }
 }

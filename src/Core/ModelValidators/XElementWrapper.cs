@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Text;
+using System.Linq;
+using System.Xml.Linq;
 using System.Collections.Generic;
 
 using BreadTh.StronglyApied.Attributes.Extending;
-using System.Xml.Linq;
-using System.Text;
-using System.Linq;
 
 namespace BreadTh.StronglyApied.Core.ModelValidators
 {
@@ -29,7 +29,7 @@ namespace BreadTh.StronglyApied.Core.ModelValidators
             IsPrimitive(); //.. as above.
         
         public bool IsObject() =>
-            !IsPrimitive(); //.. and again.
+            true; //can always hold attributes.
 
         public bool IsPrimitive()
         {           
@@ -65,8 +65,8 @@ namespace BreadTh.StronglyApied.Core.ModelValidators
         public IEnumerable<IToken> GetChildren(string name) => 
             _token.Elements(XName.Get(name)).Select(token => new XElementWrapper(token));
 
-        public IToken GetAttribute(string name) =>
-            throw new NotImplementedException();
+        public string GetAttribute(string name) =>
+            _token.Attribute(XName.Get(name))?.Value ?? "";
 
         public override string ToString()
         {
@@ -78,5 +78,8 @@ namespace BreadTh.StronglyApied.Core.ModelValidators
 
         public string GetChildAsText(string childName) =>
             string.Concat(_token.Elements(XName.Get(childName)).Select(child => child.ToString()));
+
+        public bool IsAttributeNullOrUndefined(string name) =>
+            _token.Attribute(XName.Get(name)) == null;
     }
 }

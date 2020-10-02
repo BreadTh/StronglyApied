@@ -23,12 +23,11 @@ namespace BreadTh.StronglyApied.Attributes
             this.maxDecimalDigits = maxDecimalDigits;
         }
 
-        public override TryParseResult TryParse(Type type, IToken token, string path)
+        public override TryParseResult TryParse(Type type, string value, string path)
         {
             if(type != typeof(decimal) && type != typeof(decimal?))
                 throw new InvalidOperationException($"Fields tagged with JsonInputDecimalAttribute must be decimal, but the given type was {type.FullName}");
 
-            string value = token.ToString();
             string trimmedValue = value.Trim();
             bool parseSuccessful = decimal.TryParse(trimmedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal parsedValue);
 

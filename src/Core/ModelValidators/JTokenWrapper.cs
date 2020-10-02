@@ -49,7 +49,7 @@ namespace BreadTh.StronglyApied.Core.ModelValidators
             return ((JArray)childContainer).Children().Select(child => new JTokenWrapper(child));
         }
 
-        public IToken GetAttribute(string name) =>
+        public string GetAttribute(string name) =>
             throw new InvalidOperationException("JSON models can't have attributes, only children/properties");
 
         public override string ToString() =>
@@ -65,5 +65,8 @@ namespace BreadTh.StronglyApied.Core.ModelValidators
 
         public string GetChildAsText(string childName) =>
             _token.SelectToken(childName)?.ToString() ?? "null";
+
+        public bool IsAttributeNullOrUndefined(string name) =>
+            throw new InvalidOperationException("JSON models can't have attributes, only children/properties");
     }
 }
