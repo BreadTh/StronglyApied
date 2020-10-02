@@ -4,12 +4,17 @@ namespace BreadTh.StronglyApied.Attributes.Extending
 {
     public interface IToken
     {
-        bool IsNullOrUndefined();
-        bool IsArray();
+        bool IsNullOrUndefinedAsPrimitive();
+        bool IsNullOrUndefinedAsObject();
+        bool IsChildAsArrayNullOrUndefined(string childName);
+        bool IsChildArray(string childName);
         bool IsPrimitive();
         bool IsObject();
+        bool IsChildPrimitive(string childName);
+        bool IsChildNullOrUndefined(string childName);
         IToken GetChild(string name);
-        IEnumerable<IToken> GetChildren();
+        string GetChildAsText(string childName);
+        IEnumerable<IToken> GetChildren(string name);
         IToken GetAttribute(string name);
         string ToString();
     }

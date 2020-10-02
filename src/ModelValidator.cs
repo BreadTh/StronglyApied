@@ -11,6 +11,7 @@ using BreadTh.StronglyApied.Core;
 using BreadTh.StronglyApied.Core.ModelValidators;
 using BreadTh.StronglyApied.Attributes;
 using BreadTh.StronglyApied.Attributes.Extending;
+using Newtonsoft.Json;
 
 namespace BreadTh.StronglyApied
 {
@@ -24,29 +25,26 @@ namespace BreadTh.StronglyApied
 
         public IEnumerable<ValidationError> TryParse<T>(string text, out T result)
         {
-            if(TryParseJson(text, out JObject jsonToken))
-                return TryParse(new JTokenWrapper(jsonToken), out result);
-            
-//            if(TryParseXml(text, out XDocument XmlToken))
-//                return Validator.TryParse(new XElementWrapper(XmlToken.), out result);
+            text = text.Trim();
 
-            result = Activator.CreateInstance<T>();
-            return new List<ValidationError>(){ ValidationError.InvalidInputData(text) };
+            if(TryParseJson(text, out JObject jsonToken))
+                return ValidateAndPopulateModel(new JTokenWrapper(jsonToken), out result);
             
+            if(TryParseXml(text, out XDocument XmlToken))
+                return ValidateAndPopulateModel(new XElementWrapper(XmlToken.Root), out result);
+
+            result = default;
+            return new List<ValidationError>(){ ValidationError.InvalidInputData(text) };
         }
 
         private bool TryParseJson(string input, out JObject result)
         {
-            result = default;
-                
-            if (string.IsNullOrWhiteSpace(input)) 
-                return false;
-
-            input = input.Trim();
-
             //though technically the root can be any of the json datatypes (yes, even null), we only want to support object as root.
             if (!input.StartsWith("{") || !input.EndsWith("}"))
+            { 
+                result = null;
                 return false;
+            }
 
             try
             {
@@ -55,6 +53,7 @@ namespace BreadTh.StronglyApied
             }
             catch (Exception)
             {
+                result = null;
                 return false;
             }
         }
@@ -73,16 +72,16 @@ namespace BreadTh.StronglyApied
             }
         }
 
-        public static IEnumerable<ValidationError> TryParse<T>(IToken rootToken, out T result)
+        private static IEnumerable<ValidationError> ValidateAndPopulateModel<T>(IToken rootToken, out T result)
         {
             List<ValidationError> errors = new List<ValidationError>();
             result = (T)TryParseObject(typeof(T), rootToken, "", new StronglyApiedObjectAttribute(false));
             return errors;
 
-            dynamic TryParse(FieldInfo fieldInfo, IToken token, string path)
+            dynamic TryParse(FieldInfo fieldInfo, IToken token, IToken parentToken, string path)
             {
                 if(fieldInfo.FieldType.IsArray)
-                    return TryParseArray(fieldInfo, token, path);
+                    return TryParseArray(fieldInfo, parentToken, path);
 
                 if(fieldInfo.FieldType.IsNonStringClass())
                     return TryParseObject(fieldInfo.FieldType, token, path, fieldInfo.GetCustomAttribute<StronglyApiedObjectAttribute>(false));
@@ -91,7 +90,7 @@ namespace BreadTh.StronglyApied
                     throw new NotImplementedException("Generic types other than Nullable<T> are not supported. (if you need a list, use array[] instead of List<T>)");
 
                 else
-                    return TryParseField(fieldInfo, fieldInfo.FieldType, token, path);
+                    return TryParseFieldInObject(fieldInfo, fieldInfo.FieldType, parentToken, path);
             }
 
             dynamic TryParseObject(Type objectType, IToken token, string path, StronglyApiedObjectAttribute attribute)
@@ -100,7 +99,7 @@ namespace BreadTh.StronglyApied
                     throw new InvalidOperationException(
                         $"All object fields and array of object fields must be tagged with StronglyApiedObjectAttribute, but none was found at {path}");
 
-                if(token.IsNullOrUndefined())
+                if(token.IsNullOrUndefinedAsObject())
                 {
                     if(attribute != null && !attribute.optional)
                         errors.Add(ValidationError.OptionalViolation(path));
@@ -121,7 +120,7 @@ namespace BreadTh.StronglyApied
                     IToken fieldToken = true == true ? token.GetChild(fieldInfo.Name) : token.GetAttribute(fieldInfo.Name); 
 
                     int errorCountBeforeParse = errors.Count;
-                    dynamic value = TryParse(fieldInfo, fieldToken, $"{path}{(string.IsNullOrEmpty(path) ? "" : ".")}{fieldInfo.Name}");
+                    dynamic value = TryParse(fieldInfo, fieldToken, token, $"{path}{(string.IsNullOrEmpty(path) ? "" : ".")}{fieldInfo.Name}");
 
                     if(fieldInfo.FieldType.IsArray && value != null)
                     {
@@ -140,7 +139,7 @@ namespace BreadTh.StronglyApied
                 return result;
             }
 
-            dynamic[] TryParseArray(FieldInfo fieldInfo, IToken token, string path)
+            dynamic[] TryParseArray(FieldInfo fieldInfo, IToken parentToken, string path)
             {
                 if(!fieldInfo.FieldType.IsSZArray)
                     throw new NotImplementedException("Only single-dimensional arrays are supported.");
@@ -150,21 +149,22 @@ namespace BreadTh.StronglyApied
                 if(arrayAttribute == null)
                     throw new NotImplementedException($"All array fields must be tagged with JsonInputArrayAttribute, but none was found at {path}");
 
-                if(token == null || !token.IsArray())
+                if(parentToken.IsChildAsArrayNullOrUndefined(fieldInfo.Name))
                 {
-                    if(token.IsNullOrUndefined())
-                    {
-                        if(arrayAttribute != null && !arrayAttribute.optional)
-                            errors.Add(ValidationError.OptionalViolation(path));
-                    }
-                    else
-                        errors.Add(ValidationError.NotAnArray(token.ToString(), path));
-                    
+                    if(!arrayAttribute.optional)
+                        errors.Add(ValidationError.OptionalViolation(path));
+
+                    return null;
+                }
+
+                if(!parentToken.IsChildArray(fieldInfo.Name))
+                {
+                    errors.Add(ValidationError.NotAnArray(JsonConvert.SerializeObject(parentToken.GetChildren(fieldInfo.Name).Select(child => child.ToString())), path));
                     return null;
                 }
                 else
                 {
-                    List<IToken> tokenAsArray = token.GetChildren().ToList();
+                    List<IToken> tokenAsArray = parentToken.GetChildren(fieldInfo.Name).ToList();
                     Type childType = fieldInfo.FieldType.GetElementType();
 
                     if (arrayAttribute != null)
@@ -184,17 +184,17 @@ namespace BreadTh.StronglyApied
                         
                     else
                         for(int index = 0; index <= lastIndex; index++)
-                            resultList.Add(TryParseField(fieldInfo, childType, tokenAsArray[index], $"{path}[{index}]"));
+                            resultList.Add(TryParseFieldInArray(fieldInfo, childType, tokenAsArray[index], $"{path}[{index}]"));
                         
                     return resultList.ToArray();
                 }
             }
 
-            dynamic TryParseField(FieldInfo fieldInfo, Type type, IToken token, string path)
+            dynamic TryParseFieldInArray(FieldInfo fieldInfo, Type type, IToken token, string path)
             {
                 StronglyApiedFieldBase attribute = fieldInfo.GetCustomAttribute<StronglyApiedFieldBase>(true);
 
-                if(token.IsNullOrUndefined())
+                if(token.IsNullOrUndefinedAsPrimitive())
                 {
 
                     if(attribute != null && !attribute.optional)
@@ -214,6 +214,40 @@ namespace BreadTh.StronglyApied
                         throw new InvalidOperationException($"All primitive fields must be tagged with a child of JsonInputFieldBase, but none was found at {path}");
 
                     StronglyApiedFieldBase.TryParseResult tryParseOutcome = attribute.TryParse(type, token, path);
+
+                    if(tryParseOutcome.status == StronglyApiedFieldBase.TryParseResult.Status.Invalid)
+                        errors.Add(tryParseOutcome.error);
+                    return tryParseOutcome.result;
+                    
+                }
+            }
+
+            dynamic TryParseFieldInObject(FieldInfo fieldInfo, Type type, IToken parentToken, string path)
+            {
+                StronglyApiedFieldBase attribute = fieldInfo.GetCustomAttribute<StronglyApiedFieldBase>(true);
+
+                if(parentToken.IsChildNullOrUndefined(fieldInfo.Name))
+                {
+
+                    if(attribute != null && !attribute.optional)
+                        errors.Add(ValidationError.OptionalViolation(path));
+                    
+                    return null;
+                }
+
+                if(!parentToken.IsChildPrimitive(fieldInfo.Name))
+                {
+                    errors.Add(ValidationError.NotPrimitive(path, parentToken.GetChildAsText(fieldInfo.Name)));
+                    return null;
+                }
+                else
+                {
+                    if(attribute == null)
+                        throw new InvalidOperationException($"All primitive fields must be tagged with a child of JsonInputFieldBase, but none was found at {path}");
+
+                    IToken childToken = parentToken.GetChild(fieldInfo.Name);
+
+                    StronglyApiedFieldBase.TryParseResult tryParseOutcome = attribute.TryParse(type, childToken, path);
 
                     if(tryParseOutcome.status == StronglyApiedFieldBase.TryParseResult.Status.Invalid)
                         errors.Add(tryParseOutcome.error);
