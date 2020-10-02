@@ -27,17 +27,32 @@ namespace BreadTh.StronglyApied
         {
             text = text.Trim();
 
-            if(TryParseJson(text, out JObject jsonToken))
-                return ValidateAndPopulateModel(new JTokenWrapper(jsonToken), out result);
-            
-            if(TryParseXml(text, out XDocument XmlToken))
-                return ValidateAndPopulateModel(new XElementWrapper(XmlToken.Root), out result);
+            StronglyApiedRootAttribute rootAttribute = typeof(T).GetCustomAttribute<StronglyApiedRootAttribute>(false);
+
+            if(rootAttribute == null)
+                throw new InvalidOperationException(
+                        $"The root model {typeof(T)} must be tagged with the attribute, StronglyApiedObjectAttribute, but none was found.");
+
+            switch(rootAttribute.datamodel)
+            {
+                case DataModel.JSON:
+                    if(TryTokenizeJson(text, out JObject jsonToken))
+                        return MapToModel(new JTokenWrapper(jsonToken), new StronglyApiedObjectAttribute(), out result);
+                    break;
+                case DataModel.XML:
+                    if(TryTokenizeXml(text, out XDocument XmlToken))
+                        return MapToModel(new XElementWrapper(XmlToken.Root), new StronglyApiedObjectAttribute(), out result);
+                    break;
+                default:
+                    throw new InvalidOperationException("The root object datamodel attribute must be configured with a valid DataModel enum (other than Undefined)");
+            }
 
             result = default;
             return new List<ValidationError>(){ ValidationError.InvalidInputData(text) };
+
         }
 
-        private bool TryParseJson(string input, out JObject result)
+        private bool TryTokenizeJson(string input, out JObject result)
         {
             //though technically the root can be any of the json datatypes (yes, even null), we only want to support object as root.
             if (!input.StartsWith("{") || !input.EndsWith("}"))
@@ -58,7 +73,7 @@ namespace BreadTh.StronglyApied
             }
         }
 
-        private bool TryParseXml(string input, out XDocument result)
+        private bool TryTokenizeXml(string input, out XDocument result)
         {
             try
             {
@@ -72,28 +87,28 @@ namespace BreadTh.StronglyApied
             }
         }
 
-        private static IEnumerable<ValidationError> ValidateAndPopulateModel<T>(IToken rootToken, out T result)
+        private static IEnumerable<ValidationError> MapToModel<T>(IToken rootToken, StronglyApiedObjectAttribute rootAttribute, out T result)
         {
             List<ValidationError> errors = new List<ValidationError>();
-            result = (T)TryParseObject(typeof(T), rootToken, "", new StronglyApiedObjectAttribute(false));
+            result = (T)MapObject(typeof(T), rootToken, "", rootAttribute);
             return errors;
 
-            dynamic TryParse(FieldInfo fieldInfo, IToken token, IToken parentToken, string path)
+            dynamic DetermineTypeAndMap(FieldInfo fieldInfo, IToken token, IToken parentToken, string path)
             {
                 if(fieldInfo.FieldType.IsArray)
-                    return TryParseArray(fieldInfo, parentToken, path);
+                    return MapArray(fieldInfo, parentToken, path);
 
                 if(fieldInfo.FieldType.IsNonStringClass())
-                    return TryParseObject(fieldInfo.FieldType, token, path, fieldInfo.GetCustomAttribute<StronglyApiedObjectAttribute>(false));
+                    return MapObject(fieldInfo.FieldType, token, path, fieldInfo.GetCustomAttribute<StronglyApiedObjectAttribute>(false));
 
                 if(fieldInfo.FieldType.IsGenericType && fieldInfo.FieldType.Name != "Nullable`1")
                     throw new NotImplementedException("Generic types other than Nullable<T> are not supported. (if you need a list, use array[] instead of List<T>)");
 
                 else
-                    return TryParseFieldInObject(fieldInfo, fieldInfo.FieldType, parentToken, path);
+                    return MapFieldInObject(fieldInfo, fieldInfo.FieldType, parentToken, path);
             }
 
-            dynamic TryParseObject(Type objectType, IToken token, string path, StronglyApiedObjectAttribute attribute)
+            dynamic MapObject(Type objectType, IToken token, string path, StronglyApiedObjectAttribute attribute)
             {
                 if(attribute == null)
                     throw new InvalidOperationException(
@@ -120,7 +135,7 @@ namespace BreadTh.StronglyApied
                     IToken fieldToken = true == true ? token.GetChild(fieldInfo.Name) : token.GetAttribute(fieldInfo.Name); 
 
                     int errorCountBeforeParse = errors.Count;
-                    dynamic value = TryParse(fieldInfo, fieldToken, token, $"{path}{(string.IsNullOrEmpty(path) ? "" : ".")}{fieldInfo.Name}");
+                    dynamic value = DetermineTypeAndMap(fieldInfo, fieldToken, token, $"{path}{(string.IsNullOrEmpty(path) ? "" : ".")}{fieldInfo.Name}");
 
                     if(fieldInfo.FieldType.IsArray && value != null)
                     {
@@ -139,7 +154,7 @@ namespace BreadTh.StronglyApied
                 return result;
             }
 
-            dynamic[] TryParseArray(FieldInfo fieldInfo, IToken parentToken, string path)
+            dynamic[] MapArray(FieldInfo fieldInfo, IToken parentToken, string path)
             {
                 if(!fieldInfo.FieldType.IsSZArray)
                     throw new NotImplementedException("Only single-dimensional arrays are supported.");
@@ -180,17 +195,17 @@ namespace BreadTh.StronglyApied
 
                     if(childType.IsNonStringClass())
                         for(int index = 0; index <= lastIndex; index++)
-                            resultList.Add(TryParseObject(childType, tokenAsArray[index], $"{path}[{index}]", fieldInfo.GetCustomAttribute<StronglyApiedObjectAttribute>(false)));
+                            resultList.Add(MapObject(childType, tokenAsArray[index], $"{path}[{index}]", fieldInfo.GetCustomAttribute<StronglyApiedObjectAttribute>(false)));
                         
                     else
                         for(int index = 0; index <= lastIndex; index++)
-                            resultList.Add(TryParseFieldInArray(fieldInfo, childType, tokenAsArray[index], $"{path}[{index}]"));
+                            resultList.Add(MapFieldInArray(fieldInfo, childType, tokenAsArray[index], $"{path}[{index}]"));
                         
                     return resultList.ToArray();
                 }
             }
 
-            dynamic TryParseFieldInArray(FieldInfo fieldInfo, Type type, IToken token, string path)
+            dynamic MapFieldInArray(FieldInfo fieldInfo, Type type, IToken token, string path)
             {
                 StronglyApiedFieldBase attribute = fieldInfo.GetCustomAttribute<StronglyApiedFieldBase>(true);
 
@@ -222,7 +237,7 @@ namespace BreadTh.StronglyApied
                 }
             }
 
-            dynamic TryParseFieldInObject(FieldInfo fieldInfo, Type type, IToken parentToken, string path)
+            dynamic MapFieldInObject(FieldInfo fieldInfo, Type type, IToken parentToken, string path)
             {
                 StronglyApiedFieldBase attribute = fieldInfo.GetCustomAttribute<StronglyApiedFieldBase>(true);
 

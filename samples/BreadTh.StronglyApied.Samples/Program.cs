@@ -102,6 +102,7 @@ namespace Samples
                 </listChildren>
             </root>";
 
+        [StronglyApiedRoot(DataModel.XML)]
         public class MyXmlModel 
         {
             [StronglyApiedObject()] public StringChildren stringChildren;
@@ -265,6 +266,7 @@ namespace Samples
                 }
             }";
 
+        [StronglyApiedRoot(DataModel.JSON)]
         public class MyJsonModel
         {
             [StronglyApiedObject()] public Strings strings;

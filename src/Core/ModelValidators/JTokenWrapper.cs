@@ -50,7 +50,7 @@ namespace BreadTh.StronglyApied.Core.ModelValidators
         }
 
         public IToken GetAttribute(string name) =>
-            GetChild(name);
+            throw new InvalidOperationException("JSON models can't have attributes, only children/properties");
 
         public override string ToString() =>
             _token.GetType() == typeof(JValue) 
