@@ -17,13 +17,13 @@ namespace BreadTh.StronglyApied.Direct
 {
     public class ModelValidator : IModelValidator
     {
-        public IEnumerable<ValidationError> TryParse<T>(Stream text, out T result)
+        public List<ValidationError> TryParse<T>(Stream text, out T result)
         {
             using StreamReader reader = new StreamReader(text);
             return TryParse(reader.ReadToEnd(), out result);
         }
 
-        public IEnumerable<ValidationError> TryParse<T>(string text, out T result)
+        public List<ValidationError> TryParse<T>(string text, out T result)
         {
             text = text.Trim();
 
@@ -39,10 +39,12 @@ namespace BreadTh.StronglyApied.Direct
                     if(TryTokenizeJson(text, out JObject jsonToken))
                         return MapToModel(new JTokenWrapper(jsonToken), new StronglyApiedObjectAttribute(), out result);
                     break;
+
                 case DataModel.XML:
                     if(TryTokenizeXml(text, out XDocument XmlToken))
                         return MapToModel(new XElementWrapper(XmlToken.Root), new StronglyApiedObjectAttribute(), out result);
                     break;
+
                 default:
                     throw new InvalidOperationException("The root object datamodel attribute must be configured with a valid DataModel enum (other than Undefined)");
             }
@@ -50,6 +52,26 @@ namespace BreadTh.StronglyApied.Direct
             result = default;
             return new List<ValidationError>(){ ValidationError.InvalidInputData(text) };
         }
+
+
+        //No, this is not an optimal implementation by any measure. If you wanna improve it, be my guest.
+        public List<ValidationError> ValidateModel<T>(T value)
+        {
+            StronglyApiedRootAttribute rootAttribute = typeof(T).GetCustomAttribute<StronglyApiedRootAttribute>(false);
+            switch(rootAttribute.datamodel)
+            {
+                case DataModel.JSON:
+                    TryTokenizeJson(JsonConvert.SerializeObject(value), out JObject jsonToken);
+                    return MapToModel(new JTokenWrapper(jsonToken), new StronglyApiedObjectAttribute(), out T _);
+
+                case DataModel.XML:
+                    throw new NotImplementedException();
+
+                default:
+                    throw new InvalidOperationException("The root object datamodel attribute must be configured with a valid DataModel enum (other than Undefined)");
+            }
+        }
+
 
         private bool TryTokenizeJson(string input, out JObject result)
         {
@@ -86,7 +108,7 @@ namespace BreadTh.StronglyApied.Direct
             }
         }
 
-        private static IEnumerable<ValidationError> MapToModel<T>(IToken rootToken, StronglyApiedObjectAttribute rootAttribute, out T result)
+        private static List<ValidationError> MapToModel<T>(IToken rootToken, StronglyApiedObjectAttribute rootAttribute, out T result)
         {
             List<ValidationError> errors = new List<ValidationError>();
             result = (T)MapObject(typeof(T), rootToken, "", rootAttribute);
@@ -289,6 +311,6 @@ namespace BreadTh.StronglyApied.Direct
                     return tryParseOutcome.result;
                 }
             }
-        } 
+        }
     }
 }

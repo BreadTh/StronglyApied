@@ -16,22 +16,28 @@ namespace BreadTh.StronglyApied.Samples
             ConnectionMultiplexer.Connect("localhost").GetDatabase().StringSet("Users::Joan", "{\"password\": password123\",\"permissions\":\"Break it all!\"}");
             //Invalid json at here---------------------------------------------------------------------------^
 
-            DataSources dataSources = new DataSources("localhost");
+            DataSources dataSources = new DataSources();
             
-            await dataSources.Users.Set("John", new User() 
-            {   permissions = "Do anything!!"
-            ,   password = "NramkJcVCKVTcqYiWDOuRLOlHSMRPqx" 
-            });
+            Console.WriteLine("\n\n Writing records..");
+            
+            Console.WriteLine("\n\n" + JsonConvert.SerializeObject(
+                await dataSources.Users.TrySet("John", new User() 
+                {   permissions = "Do anything!!"
+                ,   password = "NramkJcVCKVTcqYiWDOuRLOlHSMRPqx" 
+                })
+            ));
 
-            await dataSources.Users.Set("Steve", new User() 
-            {   permissions = null
-            ,   password = "   pass1!   " 
-            });
+            Console.WriteLine("\n\n" + JsonConvert.SerializeObject(
+                await dataSources.Users.TrySet("Steve", new User() 
+                {   permissions = null
+                ,   password = "   pass1!   " 
+                })
+            ));
 
-            Console.Write("\nWrite the name of the user record you want to read: ");
+            Console.Write("\n\nWrite the name of the user record you want to read: ");
             string recordName = Console.ReadLine();
 
-            GetEntryResult<User> userLookup = dataSources.Users.Get(recordName);
+            TryGetEntryResult<User> userLookup = await dataSources.Users.TryGet(recordName);
             
             Console.WriteLine(
                 userLookup.status switch
@@ -47,17 +53,8 @@ namespace BreadTh.StronglyApied.Samples
 
         public class DataSources 
         {
-            IConnectionMultiplexer _multiplexer;
-
-            public DataSources(IConnectionMultiplexer multiplexer) =>
-                _multiplexer = multiplexer;
-        
-            public DataSources(string connectionString)
-                : this(ConnectionMultiplexer.Connect(connectionString)) 
-            { }
-
-            public RedisTable<AccessToken> AccessTokens => new RedisTable<AccessToken>(_multiplexer, "AccessToken::", TimeSpan.FromMinutes(30));
-            public RedisTable<User> Users => new RedisTable<User>(_multiplexer, "Users::", null);
+            public RedisTable<AccessToken> AccessTokens => RedisTable<AccessToken>.Connect("AccessToken::", TimeSpan.FromMinutes(30));
+            public RedisTable<User> Users => RedisTable<User>.Connect("Users::", null);
             //Redis is perhaps not the best place to store users, but this is an example :)
         }
 
