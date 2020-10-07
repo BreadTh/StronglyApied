@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
+
 using BreadTh.StronglyApied.Direct;
 
 namespace BreadTh.StronglyApied.Samples

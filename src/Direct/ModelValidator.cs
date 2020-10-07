@@ -53,7 +53,6 @@ namespace BreadTh.StronglyApied.Direct
             return new List<ValidationError>(){ ValidationError.InvalidInputData(text) };
         }
 
-
         //No, this is not an optimal implementation by any measure. If you wanna improve it, be my guest.
         public List<ValidationError> ValidateModel<T>(T value)
         {
