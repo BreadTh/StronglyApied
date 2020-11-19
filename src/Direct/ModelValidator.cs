@@ -71,7 +71,6 @@ namespace BreadTh.StronglyApied.Direct
             }
         }
 
-
         private bool TryTokenizeJson(string input, out JObject result)
         {
             //though technically the root can be any of the json datatypes (yes, even null), we only want to support object as root.
