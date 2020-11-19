@@ -4,6 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,9 +18,24 @@ namespace BreadTh.StronglyApied.Direct
 {
     public class ModelValidator : IModelValidator
     {
-        public List<ValidationError> TryParse<T>(Stream text, out T result)
+        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawBody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
         {
-            using StreamReader reader = new StreamReader(text);
+            using StreamReader reader = new StreamReader(rawBody);
+            return await TryParse(reader.ReadToEnd(), onValidationError, onSuccess);
+        }
+
+        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(string rawbody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
+        {
+            List<ValidationError> errors = TryParse(rawbody, out MODEL body);
+
+            return errors.Count() == 0
+            ?   await onSuccess(body)
+            :   onValidationError(errors);
+        }
+
+        public List<ValidationError> TryParse<T>(Stream rawBody, out T result)
+        {
+            using StreamReader reader = new StreamReader(rawBody);
             return TryParse(reader.ReadToEnd(), out result);
         }
 
