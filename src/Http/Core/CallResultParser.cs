@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Linq;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
@@ -40,7 +39,7 @@ namespace BreadTh.StronglyApied.Http.Core
         {
             if (_outcomeCarrier.status != OutcomeCarrier<OUTCOME>.Status.AlreadyFound)
             {
-                List<ValidationError> validationErrors = _modelValidator.TryParse(_context.responseBody, out MODEL model).ToList();
+                (MODEL model, List<ValidationError> validationErrors) = _modelValidator.TryParse<MODEL>(_context.responseBody);
 
                 if (validationErrors.Count == 0)
                     _outcomeCarrier = OutcomeCarrier<OUTCOME>.AlreadyFound(transformOnSuccessfulModelParse(model));
@@ -60,6 +59,5 @@ namespace BreadTh.StronglyApied.Http.Core
         public OUTCOME OnNoMatch(Func<string, OUTCOME> transform) =>
             OnNoMatch((SuccessfulHttpCallContext context, List<KeyValuePair<string, List<ValidationError>>> _validationErrorsOverModelNames) =>
                 transform($"No matching model was found when parsing http call: {JsonConvert.SerializeObject(context)}. The following validation/matching issues were found: {JsonConvert.SerializeObject(_validationErrorsOverModelNames)}"));
-
     }
 }

@@ -31,6 +31,12 @@ namespace BreadTh.StronglyApied.Http.Core
             _request.AddHeader(name, value);
             return this;
         }
+
+        public IHttpApiRequestBuilder<OUTCOME> AddParameter(string name, string value)
+        {
+            _request.AddParameter(name, value);
+            return this;
+        }
         
         public ICallResultParser<OUTCOME> PerformCall(Func<FailedHttpCallContext, OUTCOME> onTransitError, TimeSpan[] retrySpacing = null)
         {

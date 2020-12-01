@@ -45,7 +45,7 @@ namespace BreadTh.StronglyApied.Databases.Redis
             if (string.IsNullOrWhiteSpace(resultRaw))
                 return TryGetEntryResult<ENTRY>.NotFound();
 
-            List<ValidationError> errorList = _validator.TryParse(resultRaw, out ENTRY result).ToList();
+            (ENTRY result, List<ValidationError> errorList) = _validator.TryParse<ENTRY>(resultRaw);
 
             if(errorList.Count == 0)
                 return TryGetEntryResult<ENTRY>.Ok(result);

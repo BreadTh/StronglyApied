@@ -7,8 +7,8 @@ namespace BreadTh.StronglyApied.Direct
 {
     public interface IModelValidator
     {
-        List<ValidationError> TryParse<T>(Stream rawbody, out T result);
-        List<ValidationError> TryParse<T>(string rawbody, out T result);
+        Task<(T result, List<ValidationError> errors)> TryParse<T>(Stream rawbody);
+        (T result, List<ValidationError> errors) TryParse<T>(string rawbody);
         Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawbody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess);
         Task<OUTCOME> TryParse<OUTCOME, MODEL>(string rawbody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess);
         

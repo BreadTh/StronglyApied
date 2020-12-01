@@ -25,6 +25,13 @@ namespace BreadTh.StronglyApied.Http.Core
             return this;
         }
 
+        public IHttpApiRequestBuilderWithStringlyErrorHandling<OUTCOME> AddParameter(string name, string value)
+        {
+            _actualBuilder.AddParameter(name, value);
+            return this;
+        }
+
+
         public ICallResultParserWithStringlyErrorHandling<OUTCOME> PerformCall() =>
             new CallResultParserWithStringlyErrorHandling<OUTCOME>(_actualBuilder.PerformCall(_stringlyErrorHandler), _stringlyErrorHandler);
 

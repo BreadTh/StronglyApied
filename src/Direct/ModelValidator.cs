@@ -18,66 +18,71 @@ namespace BreadTh.StronglyApied.Direct
 {
     public class ModelValidator : IModelValidator
     {
-        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawBody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
+        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawbody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
         {
-            using StreamReader reader = new StreamReader(rawBody);
-            return await TryParse(reader.ReadToEnd(), onValidationError, onSuccess);
+            using StreamReader reader = new StreamReader(rawbody);
+            return await TryParse(await reader.ReadToEndAsync(), onValidationError, onSuccess);
         }
 
         public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(string rawbody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
         {
-            List<ValidationError> errors = TryParse(rawbody, out MODEL body);
+            var result = TryParse<MODEL>(rawbody);
 
-            return errors.Count() == 0
-            ?   await onSuccess(body)
-            :   onValidationError(errors);
+            return result.errors.Count() == 0
+            ?   await onSuccess(result.result)
+            :   onValidationError(result.errors);
         }
 
-        public List<ValidationError> TryParse<T>(Stream rawBody, out T result)
+        public async Task<(T result, List<ValidationError> errors)> TryParse<T>(Stream rawbody)
         {
-            using StreamReader reader = new StreamReader(rawBody);
-            return TryParse(reader.ReadToEnd(), out result);
+            using StreamReader reader = new StreamReader(rawbody);
+            return TryParse<T>(await reader.ReadToEndAsync());
         }
 
-        public List<ValidationError> TryParse<T>(string text, out T result)
+        public (T result, List<ValidationError> errors) TryParse<T>(string rawbody)
         {
-            text = text.Trim();
+            rawbody = rawbody.Trim();
 
             StronglyApiedRootAttribute rootAttribute = typeof(T).GetCustomAttribute<StronglyApiedRootAttribute>(false);
 
             if(rootAttribute == null)
                 throw new InvalidOperationException(
-                        $"The root model {typeof(T)} must be tagged with the attribute, StronglyApiedObjectAttribute, but none was found.");
+                        $"The root model {typeof(T)} must be tagged with the attribute, StronglyApiedRoot, but none was found.");
 
             switch(rootAttribute.datamodel)
             {
                 case DataModel.JSON:
-                    if(TryTokenizeJson(text, out JObject jsonToken))
-                        return MapToModel(new JTokenWrapper(jsonToken), new StronglyApiedObjectAttribute(), out result);
+                    if(TryTokenizeJson(rawbody, out JObject jsonToken))
+                        return MapToModel<T>(new JTokenWrapper(jsonToken), new StronglyApiedObjectAttribute());
                     break;
 
                 case DataModel.XML:
-                    if(TryTokenizeXml(text, out XDocument XmlToken))
-                        return MapToModel(new XElementWrapper(XmlToken.Root), new StronglyApiedObjectAttribute(), out result);
+                    if(TryTokenizeXml(rawbody, out XDocument XmlToken))
+                        return MapToModel<T>(new XElementWrapper(XmlToken.Root), new StronglyApiedObjectAttribute());
                     break;
 
                 default:
                     throw new InvalidOperationException("The root object datamodel attribute must be configured with a valid DataModel enum (other than Undefined)");
             }
 
-            result = default;
-            return new List<ValidationError>(){ ValidationError.InvalidInputData(text) };
+            
+            return (default, new List<ValidationError>(){ ValidationError.InvalidInputData(rawbody) });
         }
 
         //No, this is not an optimal implementation by any measure. If you wanna improve it, be my guest.
         public List<ValidationError> ValidateModel<T>(T value)
         {
             StronglyApiedRootAttribute rootAttribute = typeof(T).GetCustomAttribute<StronglyApiedRootAttribute>(false);
+
+            if(rootAttribute == null)
+                throw new InvalidOperationException(
+                        $"The root model {typeof(T)} must be tagged with the attribute, StronglyApiedRoot, but none was found.");
+
             switch(rootAttribute.datamodel)
             {
                 case DataModel.JSON:
                     TryTokenizeJson(JsonConvert.SerializeObject(value), out JObject jsonToken);
-                    return MapToModel(new JTokenWrapper(jsonToken), new StronglyApiedObjectAttribute(), out T _);
+                    return MapToModel<T>(new JTokenWrapper(jsonToken), new StronglyApiedObjectAttribute()).errors;
 
                 case DataModel.XML:
                     throw new NotImplementedException();
@@ -122,11 +127,12 @@ namespace BreadTh.StronglyApied.Direct
             }
         }
 
-        private static List<ValidationError> MapToModel<T>(IToken rootToken, StronglyApiedObjectAttribute rootAttribute, out T result)
+        private static (T result, List<ValidationError> errors) MapToModel<T>(
+            IToken rootToken, StronglyApiedObjectAttribute rootAttribute)
         {
             List<ValidationError> errors = new List<ValidationError>();
-            result = (T)MapObject(typeof(T), rootToken, "", rootAttribute);
-            return errors;
+            T result = (T)MapObject(typeof(T), rootToken, "", rootAttribute);
+            return (result, errors);
 
             dynamic DetermineTypeAndMap(FieldInfo fieldInfo, IToken token, IToken parentToken, string path)
             {
