@@ -2,7 +2,7 @@
 
 using BreadTh.StronglyApied.Attributes.Core;
 
-namespace BreadTh.StronglyApied.Direct.Attributes
+namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)]
     public sealed class StronglyApiedAttributeAttribute : StronglyApiedRelationBaseAttribute

@@ -10,7 +10,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using BreadTh.StronglyApied.Direct.Core;
-using BreadTh.StronglyApied.Direct.Attributes;
 using BreadTh.StronglyApied.Attributes;
 using BreadTh.StronglyApied.Attributes.Extending;
 using BreadTh.StronglyApied.Attributes.Core;
