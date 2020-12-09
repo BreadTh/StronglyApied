@@ -45,7 +45,7 @@ namespace BreadTh.StronglyApied.Databases.Redis
             if (string.IsNullOrWhiteSpace(resultRaw))
                 return TryGetEntryResult<ENTRY>.NotFound();
 
-            (ENTRY result, List<ValidationError> errorList) = _validator.TryParse<ENTRY>(resultRaw);
+            (ENTRY result, List<ErrorDescription> errorList) = _validator.TryParse<ENTRY>(resultRaw);
 
             if(errorList.Count == 0)
                 return TryGetEntryResult<ENTRY>.Ok(result);
@@ -58,7 +58,7 @@ namespace BreadTh.StronglyApied.Databases.Redis
 
         public async Task<TrySetEntryResult> TrySet(string key, ENTRY value, bool forceSetValueEvenWhenValidationError = false) 
         {
-            List<ValidationError> validationErrors = _validator.ValidateModel(value);
+            List<ErrorDescription> validationErrors = _validator.ValidateModel(value);
 
             if(validationErrors.Count == 0)
             {

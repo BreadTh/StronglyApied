@@ -11,20 +11,21 @@ using Newtonsoft.Json.Linq;
 
 using BreadTh.StronglyApied.Direct.Core;
 using BreadTh.StronglyApied.Direct.Attributes;
-using BreadTh.StronglyApied.Direct.Attributes.Extending;
-using BreadTh.StronglyApied.Direct.Attributes.Core;
+using BreadTh.StronglyApied.Attributes;
+using BreadTh.StronglyApied.Attributes.Extending;
+using BreadTh.StronglyApied.Attributes.Core;
 
 namespace BreadTh.StronglyApied.Direct
 {
     public class ModelValidator : IModelValidator
     {
-        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawbody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
+        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawbody, Func<List<ErrorDescription>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
         {
             using StreamReader reader = new StreamReader(rawbody);
             return await TryParse(await reader.ReadToEndAsync(), onValidationError, onSuccess);
         }
 
-        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(string rawbody, Func<List<ValidationError>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
+        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(string rawbody, Func<List<ErrorDescription>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
         {
             var result = TryParse<MODEL>(rawbody);
 
@@ -33,13 +34,13 @@ namespace BreadTh.StronglyApied.Direct
             :   onValidationError(result.errors);
         }
 
-        public async Task<(T result, List<ValidationError> errors)> TryParse<T>(Stream rawbody)
+        public async Task<(T result, List<ErrorDescription> errors)> TryParse<T>(Stream rawbody)
         {
             using StreamReader reader = new StreamReader(rawbody);
             return TryParse<T>(await reader.ReadToEndAsync());
         }
 
-        public (T result, List<ValidationError> errors) TryParse<T>(string rawbody)
+        public (T result, List<ErrorDescription> errors) TryParse<T>(string rawbody)
         {
             rawbody = rawbody.Trim();
 
@@ -66,11 +67,11 @@ namespace BreadTh.StronglyApied.Direct
             }
 
             
-            return (default, new List<ValidationError>(){ ValidationError.InvalidInputData(rawbody) });
+            return (default, new List<ErrorDescription>(){ ErrorDescription.InvalidInputData(rawbody) });
         }
 
         //No, this is not an optimal implementation by any measure. If you wanna improve it, be my guest.
-        public List<ValidationError> ValidateModel<T>(T value)
+        public List<ErrorDescription> ValidateModel<T>(T value)
         {
             StronglyApiedRootAttribute rootAttribute = typeof(T).GetCustomAttribute<StronglyApiedRootAttribute>(false);
 
@@ -127,10 +128,10 @@ namespace BreadTh.StronglyApied.Direct
             }
         }
 
-        private static (T result, List<ValidationError> errors) MapToModel<T>(
+        private static (T result, List<ErrorDescription> errors) MapToModel<T>(
             IToken rootToken, StronglyApiedObjectAttribute rootAttribute)
         {
-            List<ValidationError> errors = new List<ValidationError>();
+            List<ErrorDescription> errors = new List<ErrorDescription>();
             T result = (T)MapObject(typeof(T), rootToken, "", rootAttribute);
             return (result, errors);
 
@@ -158,14 +159,14 @@ namespace BreadTh.StronglyApied.Direct
                 if(token.IsNullOrUndefinedAsObject())
                 {
                     if(attribute != null && !attribute.optional)
-                        errors.Add(ValidationError.OptionalViolation(path));
+                        errors.Add(ErrorDescription.OptionalViolation(path));
 
                     return null;
                 }
 
                 if(!token.IsObject())
                 {
-                    errors.Add(ValidationError.NotAnObject(token.ToString(), path));
+                    errors.Add(ErrorDescription.NotAnObject(token.ToString(), path));
                     return null;
                 }
 
@@ -215,14 +216,14 @@ namespace BreadTh.StronglyApied.Direct
                 if(parentToken.IsChildAsArrayNullOrUndefined(fieldName))
                 {
                     if(!arrayAttribute.optional)
-                        errors.Add(ValidationError.OptionalViolation(path));
+                        errors.Add(ErrorDescription.OptionalViolation(path));
 
                     return null;
                 }
 
                 if(!parentToken.IsChildArray(fieldName))
                 {
-                    errors.Add(ValidationError.NotAnArray(JsonConvert.SerializeObject(parentToken.GetChildren(fieldName).Select(child => child.ToString())), path));
+                    errors.Add(ErrorDescription.NotAnArray(JsonConvert.SerializeObject(parentToken.GetChildren(fieldName).Select(child => child.ToString())), path));
                     return null;
                 }
                 else
@@ -232,10 +233,10 @@ namespace BreadTh.StronglyApied.Direct
 
                     if (arrayAttribute != null)
                         if(tokenAsArray.Count < arrayAttribute.minLength)
-                            errors.Add(ValidationError.ArrayTooShort(tokenAsArray.Count, arrayAttribute.minLength, path));
+                            errors.Add(ErrorDescription.ArrayTooShort(tokenAsArray.Count, arrayAttribute.minLength, path));
 
                         else if(tokenAsArray.Count > arrayAttribute.maxLength)
-                            errors.Add(ValidationError.ArrayTooLong(tokenAsArray.Count, arrayAttribute.maxLength, path));
+                            errors.Add(ErrorDescription.ArrayTooLong(tokenAsArray.Count, arrayAttribute.maxLength, path));
 
                     List<dynamic> resultList = new List<dynamic>();
 
@@ -259,14 +260,14 @@ namespace BreadTh.StronglyApied.Direct
                     if(token.IsNullOrUndefinedAsPrimitive())
                     {
                         if(datatypeAttribute != null && !datatypeAttribute.optional)
-                            errors.Add(ValidationError.OptionalViolation(path));
+                            errors.Add(ErrorDescription.OptionalViolation(path));
                     
                         return null;
                     }
                 
                 if(!token.IsPrimitive())
                 {
-                    errors.Add(ValidationError.NotPrimitive(path, token.ToString()));
+                    errors.Add(ErrorDescription.NotPrimitive(path, token.ToString()));
                     return null;
                 }
                 else
@@ -296,7 +297,7 @@ namespace BreadTh.StronglyApied.Direct
                     if(parentToken.IsAttributeNullOrUndefined(fieldName))
                     {
                         if(datatypeAttribute != null && !datatypeAttribute.optional)
-                            errors.Add(ValidationError.OptionalViolation(path));
+                            errors.Add(ErrorDescription.OptionalViolation(path));
                         
                         return null;
                     }
@@ -306,7 +307,7 @@ namespace BreadTh.StronglyApied.Direct
                     if(parentToken.IsChildNullOrUndefined(fieldName))
                     {
                         if(datatypeAttribute != null && !datatypeAttribute.optional)
-                            errors.Add(ValidationError.OptionalViolation(path));
+                            errors.Add(ErrorDescription.OptionalViolation(path));
                         
                         return null;
                     }
@@ -314,7 +315,7 @@ namespace BreadTh.StronglyApied.Direct
 
                 if(!isAttribute && !parentToken.IsChildPrimitive(fieldName))
                 {
-                    errors.Add(ValidationError.NotPrimitive(path, parentToken.GetChildAsText(fieldName)));
+                    errors.Add(ErrorDescription.NotPrimitive(path, parentToken.GetChildAsText(fieldName)));
                     return null;
                 }
                 else

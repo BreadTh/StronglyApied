@@ -1,7 +1,7 @@
-﻿using BreadTh.StronglyApied.Direct.Attributes.Core;
+﻿using BreadTh.StronglyApied.Attributes.Core;
 using System;
 
-namespace BreadTh.StronglyApied.Direct.Attributes
+namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
     public sealed class StronglyApiedChildAttribute : StronglyApiedRelationBaseAttribute

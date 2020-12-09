@@ -11,16 +11,16 @@ namespace BreadTh.StronglyApied.Databases.Redis
         public enum Status { Undefined, Ok, ValidationError }
             
         public static TrySetEntryResult Ok() =>
-            new TrySetEntryResult(Status.Ok, new List<ValidationError>());
+            new TrySetEntryResult(Status.Ok, new List<ErrorDescription>());
 
-        public static TrySetEntryResult ValidationError(List<ValidationError> validationErrors) =>
+        public static TrySetEntryResult ValidationError(List<ErrorDescription> validationErrors) =>
             new TrySetEntryResult(Status.ValidationError, validationErrors);
             
         [JsonConverter(typeof(StringEnumConverter))]
         public Status status;
-        public List<ValidationError> validationErrors;
+        public List<ErrorDescription> validationErrors;
 
-        public TrySetEntryResult(Status status, List<ValidationError> validationErrors)
+        public TrySetEntryResult(Status status, List<ErrorDescription> validationErrors)
         {
             this.status = status;
             this.validationErrors = validationErrors;

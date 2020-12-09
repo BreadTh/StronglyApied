@@ -3,7 +3,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Collections.Generic;
 
-using BreadTh.StronglyApied.Direct.Attributes.Extending;
+using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Direct.Core
 {

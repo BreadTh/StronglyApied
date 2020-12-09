@@ -1,6 +1,6 @@
 ﻿using System;
 
-using BreadTh.StronglyApied.Direct.Attributes.Core;
+using BreadTh.StronglyApied.Attributes.Core;
 
 namespace BreadTh.StronglyApied.Direct.Attributes
 {

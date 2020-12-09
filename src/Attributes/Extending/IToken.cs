@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BreadTh.StronglyApied.Direct.Attributes.Extending
+namespace BreadTh.StronglyApied.Attributes.Extending
 {
     public interface IToken
     {

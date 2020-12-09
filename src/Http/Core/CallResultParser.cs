@@ -13,7 +13,7 @@ namespace BreadTh.StronglyApied.Http.Core
         IModelValidator _modelValidator;
 
         readonly SuccessfulHttpCallContext _context;
-        readonly List<KeyValuePair<string, List<ValidationError>>> _validationErrorsOverModelNames = new List<KeyValuePair<string, List<ValidationError>>>();
+        readonly List<KeyValuePair<string, List<ErrorDescription>>> _validationErrorsOverModelNames = new List<KeyValuePair<string, List<ErrorDescription>>>();
         OutcomeCarrier<OUTCOME> _outcomeCarrier;
 
         public CallResultParser(OutcomeCarrier<OUTCOME> outcomeCarrier, SuccessfulHttpCallContext context, IModelValidator modelValidator = null)
@@ -39,17 +39,17 @@ namespace BreadTh.StronglyApied.Http.Core
         {
             if (_outcomeCarrier.status != OutcomeCarrier<OUTCOME>.Status.AlreadyFound)
             {
-                (MODEL model, List<ValidationError> validationErrors) = _modelValidator.TryParse<MODEL>(_context.responseBody);
+                (MODEL model, List<ErrorDescription> validationErrors) = _modelValidator.TryParse<MODEL>(_context.responseBody);
 
                 if (validationErrors.Count == 0)
                     _outcomeCarrier = OutcomeCarrier<OUTCOME>.AlreadyFound(transformOnSuccessfulModelParse(model));
                 else
-                    _validationErrorsOverModelNames.Add(new KeyValuePair<string, List<ValidationError>>(typeof(MODEL).FullName, validationErrors));
+                    _validationErrorsOverModelNames.Add(new KeyValuePair<string, List<ErrorDescription>>(typeof(MODEL).FullName, validationErrors));
             }
             return this;
         }
 
-        public OUTCOME OnNoMatch(Func<SuccessfulHttpCallContext, List<KeyValuePair<string, List<ValidationError>>>, OUTCOME> transform)
+        public OUTCOME OnNoMatch(Func<SuccessfulHttpCallContext, List<KeyValuePair<string, List<ErrorDescription>>>, OUTCOME> transform)
         {
             if (_outcomeCarrier.status == OutcomeCarrier<OUTCOME>.Status.AlreadyFound)
                 return _outcomeCarrier.outcome;
@@ -57,7 +57,7 @@ namespace BreadTh.StronglyApied.Http.Core
         }
 
         public OUTCOME OnNoMatch(Func<string, OUTCOME> transform) =>
-            OnNoMatch((SuccessfulHttpCallContext context, List<KeyValuePair<string, List<ValidationError>>> _validationErrorsOverModelNames) =>
+            OnNoMatch((SuccessfulHttpCallContext context, List<KeyValuePair<string, List<ErrorDescription>>> _validationErrorsOverModelNames) =>
                 transform($"No matching model was found when parsing http call: {JsonConvert.SerializeObject(context)}. The following validation/matching issues were found: {JsonConvert.SerializeObject(_validationErrorsOverModelNames)}"));
     }
 }

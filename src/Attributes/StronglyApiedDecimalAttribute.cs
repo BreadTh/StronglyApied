@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Globalization;
 
-using BreadTh.StronglyApied.Direct.Attributes.Extending;
+using BreadTh.StronglyApied.Attributes.Extending;
 
-namespace BreadTh.StronglyApied.Direct.Attributes
+namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
     public sealed class StronglyApiedDecimalAttribute : StronglyApiedFieldBase
@@ -26,28 +26,31 @@ namespace BreadTh.StronglyApied.Direct.Attributes
         public override TryParseResult TryParse(Type type, string value, string path)
         {
             if(type != typeof(decimal) && type != typeof(decimal?))
-                throw new InvalidOperationException($"Fields tagged with JsonInputDecimalAttribute must be decimal, but the given type was {type.FullName}");
+                throw new InvalidOperationException(
+                    $"Fields tagged with {typeof(StronglyApiedDecimalAttribute).FullName} "
+                +   $"must be a {typeof(decimal).FullName},"
+                +   $"but the given type was {type.FullName}");;
 
             string trimmedValue = value.Trim();
             bool parseSuccessful = decimal.TryParse(trimmedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal parsedValue);
 
             if(!parseSuccessful)
-                return TryParseResult.Invalid(ValidationError.InvalidInt64(value, path));
+                return TryParseResult.Invalid(ErrorDescription.InvalidInt64(value, path));
 
             if(parsedValue < decimal.Parse(minValue))
-                return TryParseResult.Invalid(ValidationError.NumericTooSmall(parsedValue.ToString(CultureInfo.InvariantCulture), minValue, path));
+                return TryParseResult.Invalid(ErrorDescription.NumericTooSmall(parsedValue.ToString(CultureInfo.InvariantCulture), minValue, path));
 
             if(parsedValue > decimal.Parse(maxValue))
-                return TryParseResult.Invalid(ValidationError.NumericTooLarge(parsedValue.ToString(CultureInfo.InvariantCulture), maxValue, path));
+                return TryParseResult.Invalid(ErrorDescription.NumericTooLarge(parsedValue.ToString(CultureInfo.InvariantCulture), maxValue, path));
 
             string[] parts = trimmedValue.Split('.');
             int decimalDigits = parts.Length != 2 ? 0 : parts[1].Length;
 
             if(decimalDigits < minDecimalDigits)
-                return TryParseResult.Invalid(ValidationError.TooFewDecimalDigits(parsedValue, minDecimalDigits, path));
+                return TryParseResult.Invalid(ErrorDescription.TooFewDecimalDigits(parsedValue, minDecimalDigits, path));
 
             if(decimalDigits > maxDecimalDigits)
-                return TryParseResult.Invalid(ValidationError.TooManyDecimalDigits(parsedValue, maxDecimalDigits, path));
+                return TryParseResult.Invalid(ErrorDescription.TooManyDecimalDigits(parsedValue, maxDecimalDigits, path));
 
 
             return TryParseResult.Ok(parsedValue);

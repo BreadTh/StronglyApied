@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BreadTh.StronglyApied.Direct.Attributes.Core
+namespace BreadTh.StronglyApied.Attributes.Core
 {
     public abstract class StronglyApiedRelationBaseAttribute : Attribute
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BreadTh.StronglyApied.Direct.Attributes
+namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
     public sealed class StronglyApiedArrayAttribute : Attribute

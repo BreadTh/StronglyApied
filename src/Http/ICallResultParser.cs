@@ -11,7 +11,7 @@ namespace BreadTh.StronglyApied.Http
         CallResultParser<OUTCOME> HandleHttpStatus(Func<HttpStatusCode, bool> shouldHttpStatusCodeBeHandled, Func<string, OUTCOME> transform);
         CallResultParser<OUTCOME> HandleHttpStatus(Func<HttpStatusCode, bool> shouldHttpStatusCodeBeHandled, Func<SuccessfulHttpCallContext, OUTCOME> transform);
         OUTCOME OnNoMatch(Func<string, OUTCOME> transform);
-        OUTCOME OnNoMatch(Func<SuccessfulHttpCallContext, List<KeyValuePair<string, List<ValidationError>>>, OUTCOME> transform);
+        OUTCOME OnNoMatch(Func<SuccessfulHttpCallContext, List<KeyValuePair<string, List<ErrorDescription>>>, OUTCOME> transform);
         CallResultParser<OUTCOME> TryMatchResponseBodyWithModel<MODEL>(Func<MODEL, OUTCOME> transformOnSuccessfulModelParse);
     }
 }

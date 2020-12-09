@@ -3,9 +3,9 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 
-using BreadTh.StronglyApied.Direct.Attributes.Extending;
+using BreadTh.StronglyApied.Attributes.Extending;
 
-namespace BreadTh.StronglyApied.Direct.Attributes
+namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)]
     public sealed class StronglyApiedOptionAttribute : StronglyApiedFieldBase
@@ -15,7 +15,10 @@ namespace BreadTh.StronglyApied.Direct.Attributes
         public override TryParseResult TryParse(Type type, string value, string path)
         {
             if(!type.IsEnum)
-                throw new InvalidOperationException($"Fields tagged with JsonInputOptionAttribute must be an enum, but the given type was {type.FullName}");
+                throw new InvalidOperationException(
+                    $"Fields tagged with {typeof(StronglyApiedOptionAttribute).FullName} "
+                +   $"must be an enum, "
+                +   $"but the given type was {type.FullName}");
             
             string trimmedValue = value.Trim();
 
@@ -27,7 +30,7 @@ namespace BreadTh.StronglyApied.Direct.Attributes
                 .ToList();
 
             if(!enumValues.Contains(trimmedValue))
-                return TryParseResult.Invalid(ValidationError.InvalidOption(value, enumValues, path));
+                return TryParseResult.Invalid(ErrorDescription.InvalidOption(value, enumValues, path));
             else
                 return TryParseResult.Ok(Enum.Parse(type, trimmedValue));
         }

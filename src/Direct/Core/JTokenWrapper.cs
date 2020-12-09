@@ -5,7 +5,7 @@ using System.Globalization;
 
 using Newtonsoft.Json.Linq;
 
-using BreadTh.StronglyApied.Direct.Attributes.Extending;
+using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Direct.Core
 {

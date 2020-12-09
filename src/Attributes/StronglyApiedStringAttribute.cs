@@ -1,8 +1,8 @@
 ﻿using System;
 
-using BreadTh.StronglyApied.Direct.Attributes.Extending;
+using BreadTh.StronglyApied.Attributes.Extending;
 
-namespace BreadTh.StronglyApied.Direct.Attributes
+namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
     public sealed class StronglyApiedStringAttribute : StronglyApiedFieldBase
@@ -19,15 +19,18 @@ namespace BreadTh.StronglyApied.Direct.Attributes
         override public TryParseResult TryParse(Type type, string value, string path)
         {
             if(type != typeof(string))
-                throw new InvalidOperationException($"Fields tagged with JsonInputStringAttribute must be string-type, but the given type was {type.FullName}");
+                throw new InvalidOperationException(
+                    $"Fields tagged with {typeof(StronglyApiedStringAttribute).FullName} "
+                +   $"must be a {typeof(string).FullName}, "
+                +   $"but the given type was {type.FullName}");
             
             string trimmedValue = value.Trim();
             
             if(trimmedValue.Length < minLength)
-                return TryParseResult.Invalid(ValidationError.StringTooShort(minLength, trimmedValue, path));
+                return TryParseResult.Invalid(ErrorDescription.StringTooShort(minLength, trimmedValue, path));
 
             if(trimmedValue.Length > maxLength)
-                return TryParseResult.Invalid(ValidationError.StringTooLong(maxLength, trimmedValue, path));
+                return TryParseResult.Invalid(ErrorDescription.StringTooLong(maxLength, trimmedValue, path));
             
             return TryParseResult.Ok(trimmedValue);
         }
