@@ -139,7 +139,7 @@ namespace BreadTh.StronglyApied
         public static ErrorDescription InvalidToken(string token) =>
             new ErrorDescription(
                 "6164b9ab-8fb0-4949-99d6-ee5861eaeaba"
-            ,   "The token has expired, been invalidated or never existed."
+            ,   "The token has expired, been invalidated, never existed or doesn't have access to this specific endpoint."
             ,   JsonConvert.SerializeObject(new { token }));
 
         public static ErrorDescription EmptyRouteParameter(string routeParameterName) =>
