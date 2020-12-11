@@ -5,11 +5,9 @@ using System.Globalization;
 
 using Newtonsoft.Json.Linq;
 
-using BreadTh.StronglyApied.Attributes.Extending;
-
 namespace BreadTh.StronglyApied.Direct.Core
 {
-    public class JTokenWrapper : IToken
+    public class JTokenWrapper
     {
         private JToken _token;
         public JTokenWrapper(JToken token)
@@ -41,9 +39,9 @@ namespace BreadTh.StronglyApied.Direct.Core
         public bool IsObject() =>
             _token.Type == JTokenType.Object;
 
-        public IToken GetChild(string name) =>
+        public JTokenWrapper GetChild(string name) =>
             new JTokenWrapper(_token.SelectToken(name));
-        public IEnumerable<IToken> GetChildren(string name)
+        public IEnumerable<JTokenWrapper> GetChildren(string name)
         {
             JToken childContainer = ((JObject)_token).SelectToken(name);
             return ((JArray)childContainer).Children().Select(child => new JTokenWrapper(child));

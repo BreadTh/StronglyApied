@@ -7,7 +7,7 @@ using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Direct.Core
 {
-    public class XElementWrapper : IToken
+    public class XElementWrapper
     {
         private XElement _token;
         public XElementWrapper(XElement token)
@@ -58,10 +58,10 @@ namespace BreadTh.StronglyApied.Direct.Core
             _token.Element(XName.Get(childName)) == null;
         
 
-        public IToken GetChild(string name) =>
+        public XElementWrapper GetChild(string name) =>
             new XElementWrapper(_token.Element(XName.Get(name)));
 
-        public IEnumerable<IToken> GetChildren(string name) => 
+        public IEnumerable<XElementWrapper> GetChildren(string name) => 
             _token.Elements(XName.Get(name)).Select(token => new XElementWrapper(token));
 
         public string GetAttribute(string name) =>
