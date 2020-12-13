@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Globalization;
 
 namespace BreadTh.StronglyApied.Direct.Core
 {
@@ -9,5 +11,10 @@ namespace BreadTh.StronglyApied.Direct.Core
 
         public static bool IsNonStringClass(this Type type) =>
             type.IsClass && type != typeof(string);
+
+        public static string ToCultureInvariantString(this JToken token) =>
+            token.GetType() == typeof(JValue)
+            ?   ((JValue) token).ToString(CultureInfo.InvariantCulture)
+            :   token.ToString();
     }
 }

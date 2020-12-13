@@ -15,7 +15,7 @@ namespace BreadTh.StronglyApied.Direct.Core
     public class XmlModelValidator
     {
 
-        public (bool success, XDocument result) TryTokenize(string input)
+        public (bool success, XDocument result) Tokenize(string input)
         {
             try
             {
@@ -58,7 +58,7 @@ namespace BreadTh.StronglyApied.Direct.Core
                 if(token.IsNullOrUndefinedAsObject())
                 {
                     if(attribute != null && !attribute.optional)
-                        errors.Add(ErrorDescription.OptionalViolation(path));
+                        errors.Add(ErrorDescription.OptionalityViolation(path));
 
                     return null;
                 }
@@ -115,7 +115,7 @@ namespace BreadTh.StronglyApied.Direct.Core
                 if(parentToken.IsChildAsArrayNullOrUndefined(fieldName))
                 {
                     if(!arrayAttribute.optional)
-                        errors.Add(ErrorDescription.OptionalViolation(path));
+                        errors.Add(ErrorDescription.OptionalityViolation(path));
 
                     return null;
                 }
@@ -159,7 +159,7 @@ namespace BreadTh.StronglyApied.Direct.Core
                     if(token.IsNullOrUndefinedAsPrimitive())
                     {
                         if(datatypeAttribute != null && !datatypeAttribute.optional)
-                            errors.Add(ErrorDescription.OptionalViolation(path));
+                            errors.Add(ErrorDescription.OptionalityViolation(path));
                     
                         return null;
                     }
@@ -196,7 +196,7 @@ namespace BreadTh.StronglyApied.Direct.Core
                     if(parentToken.IsAttributeNullOrUndefined(fieldName))
                     {
                         if(datatypeAttribute != null && !datatypeAttribute.optional)
-                            errors.Add(ErrorDescription.OptionalViolation(path));
+                            errors.Add(ErrorDescription.OptionalityViolation(path));
                         
                         return null;
                     }
@@ -206,7 +206,7 @@ namespace BreadTh.StronglyApied.Direct.Core
                     if(parentToken.IsChildNullOrUndefined(fieldName))
                     {
                         if(datatypeAttribute != null && !datatypeAttribute.optional)
-                            errors.Add(ErrorDescription.OptionalViolation(path));
+                            errors.Add(ErrorDescription.OptionalityViolation(path));
                         
                         return null;
                     }

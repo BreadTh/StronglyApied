@@ -2,7 +2,7 @@
 
 namespace BreadTh.StronglyApied.Attributes
 {
-    public enum DataModel { Undefined, XML, JSON}
+    public enum DataModel {JSON, XML}
 
     [AttributeUsage(AttributeTargets.Class)] 
     public sealed class StronglyApiedRootAttribute : Attribute

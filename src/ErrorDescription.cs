@@ -26,7 +26,7 @@ namespace BreadTh.StronglyApied
         public static ErrorDescription InvalidInputData(string data) =>
             new ErrorDescription("34877d2e-0014-4f6a-a9d7-1b9bdf63a502", "The given body data string is not valid JSON or XML", new { data });
 
-        public static ErrorDescription OptionalViolation(string path) =>
+        public static ErrorDescription OptionalityViolation(string path) =>
             new ErrorDescription("5f161b44-9f43-40ad-b325-4463e514030b", $"The value at \"{path}\" may not be omitted or set to null/undefined", new { path });
 
         public static ErrorDescription StringTooShort(int minLength, string value, string path) =>
