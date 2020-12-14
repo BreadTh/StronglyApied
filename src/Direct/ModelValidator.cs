@@ -21,7 +21,7 @@ namespace BreadTh.StronglyApied.Direct
     {
         public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawbody, Func<List<ErrorDescription>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
         {
-            using StreamReader reader = new StreamReader(rawbody);
+            using StreamReader reader = new StreamReader(rawbody, leaveOpen: true);
             return await TryParse(await reader.ReadToEndAsync(), onValidationError, onSuccess);
         }
 
@@ -36,7 +36,7 @@ namespace BreadTh.StronglyApied.Direct
 
         public async Task<(T result, List<ErrorDescription> errors)> TryParse<T>(Stream rawbody)
         {
-            using StreamReader reader = new StreamReader(rawbody);
+            using StreamReader reader = new StreamReader(rawbody, leaveOpen: true);
             return TryParse<T>(await reader.ReadToEndAsync());
         }
 

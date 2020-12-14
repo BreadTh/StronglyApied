@@ -154,6 +154,12 @@ namespace BreadTh.StronglyApied
             ,   "A mandatory json-body property is missing."
             ,   JsonConvert.SerializeObject(new { propertyName }));
 
+        public static ErrorDescription MissingNonoptionalHeader(string headerName) =>
+            new ErrorDescription(
+                "8c55dbb6-461c-4db7-bbe4-389247d5c80a"
+            ,   "A mandatory header is missing."
+            ,   JsonConvert.SerializeObject(new { headerName }));
+        
         public static ErrorDescription MissingNonoptionalQueryValue(string queryName) =>
             new ErrorDescription(
                 "90650b61-bb5c-486c-a0fe-b331fa1b844a"
