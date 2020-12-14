@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Globalization;
+using System.Xml.Linq;
 
 namespace BreadTh.StronglyApied.Direct.Core
 {
@@ -16,5 +17,16 @@ namespace BreadTh.StronglyApied.Direct.Core
             token.GetType() == typeof(JValue)
             ?   ((JValue) token).ToString(CultureInfo.InvariantCulture)
             :   token.ToString();
+
+        public static bool IsPrimitive(this XElement element)
+        {
+            if (element.FirstNode == null)
+                return true;
+
+            if (element.FirstNode.NextNode != null)
+                return false;
+
+            return element.FirstNode.NodeType == System.Xml.XmlNodeType.Text;
+        }
     }
 }
