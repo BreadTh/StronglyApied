@@ -115,9 +115,17 @@ namespace BreadTh.StronglyApied
                 ,   $"The given value (\"{value}\") at \"{path}\" is not in the list of valid options."
                 ,   new { path, value, options });
 
-        public static ErrorDescription InternalError() => 
+        public static ErrorDescription InternalErrorAdminNotified() => 
             new ErrorDescription("208d874d-8fde-4d7d-b1fe-1699c16a4da9"
                 ,   "An internal error occoured in the logic layer. A system administrator has been notified and will investigate. Expect that the action you tried to perform didn't go through."
+                ,   "{}");
+
+        public static ErrorDescription InternalErrorAdminNotNotified(string contact) => 
+            new ErrorDescription("00000000-0000-0000-0000-000000000000"
+                ,       "An internal error occoured in the logic layer. "
+                    +   "However, an error also occoured in the system that is supposed to notify the system administrator. "
+                    +   $"Kindly contact {contact} and report this issue. "
+                    +   "Expect that the action you tried to perform didn't go through."
                 ,   "{}");
 
         public static ErrorDescription Forbidden() =>
