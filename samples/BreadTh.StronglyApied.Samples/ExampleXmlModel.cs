@@ -1,4 +1,5 @@
-﻿using BreadTh.StronglyApied.Direct.Attributes;
+﻿using BreadTh.StronglyApied.Attributes;
+using BreadTh.StronglyApied.Direct.Attributes;
 
 namespace BreadTh.StronglyApied.Samples
 {

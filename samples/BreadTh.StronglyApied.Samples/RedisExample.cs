@@ -5,7 +5,7 @@ using StackExchange.Redis;
 using Newtonsoft.Json;
 
 using BreadTh.StronglyApied.Databases.Redis;
-using BreadTh.StronglyApied.Direct.Attributes;
+using BreadTh.StronglyApied.Attributes;
 
 namespace BreadTh.StronglyApied.Samples
 {
