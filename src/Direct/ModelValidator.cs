@@ -19,9 +19,9 @@ namespace BreadTh.StronglyApied.Direct
 {
     public class ModelValidator : IModelValidator
     {
-        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawbody, Func<List<ErrorDescription>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
+        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(Stream rawbody, Func<List<ErrorDescription>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess, bool leaveStreamOpen = true)
         {
-            using StreamReader reader = new StreamReader(rawbody, leaveOpen: true);
+            using StreamReader reader = new StreamReader(rawbody, leaveOpen: leaveStreamOpen);
             return await TryParse(await reader.ReadToEndAsync(), onValidationError, onSuccess);
         }
 
@@ -34,9 +34,9 @@ namespace BreadTh.StronglyApied.Direct
             :   onValidationError(result.errors);
         }
 
-        public async Task<(T result, List<ErrorDescription> errors)> TryParse<T>(Stream rawbody)
+        public async Task<(T result, List<ErrorDescription> errors)> TryParse<T>(Stream rawbody, bool leaveStreamOpen = true)
         {
-            using StreamReader reader = new StreamReader(rawbody, leaveOpen: true);
+            using StreamReader reader = new StreamReader(rawbody, leaveOpen: leaveStreamOpen);
             return TryParse<T>(await reader.ReadToEndAsync());
         }
 
