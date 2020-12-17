@@ -19,10 +19,17 @@ namespace BreadTh.StronglyApied.Databases.Redis
             if(connectionMultiplexer != null)
                 return new RedisTable<ENTRY>(connectionMultiplexer, keyPrefix, durability, new ModelValidator());
 
+            return new RedisTable<ENTRY>(GetDefaultMultiplexer(), keyPrefix, durability, new ModelValidator());
+        }
+        
+        private static IConnectionMultiplexer GetDefaultMultiplexer()
+        {
             if(defaultConnectionMultiplexer == null)
-                defaultConnectionMultiplexer = ConnectionMultiplexer.Connect("localhost");
+                //when redis is running on the same VM as the application, CPU starvation (like when hashing passwords) 
+                //could delay the response. This is why timeout is increased (async defaults to sync's value)
+                defaultConnectionMultiplexer = ConnectionMultiplexer.Connect("localhost,connectTimeout=60000,syncTimeout=60000");
 
-            return new RedisTable<ENTRY>(defaultConnectionMultiplexer, keyPrefix, durability, new ModelValidator());
+            return defaultConnectionMultiplexer;
         }
 
         readonly IConnectionMultiplexer _connectionMultiplexer;
