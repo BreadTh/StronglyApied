@@ -2,7 +2,7 @@
 
 namespace BreadTh.StronglyApied.Samples
 {
-    [StronglyApiedRoot(DataModel.XML)]
+    [StronglyApiedRoot(DataModel.Xml)]
     public class ExampleXmlModel 
     {
         [StronglyApiedObject()] public StringChildren stringChildren;
@@ -19,11 +19,11 @@ namespace BreadTh.StronglyApied.Samples
 
         public class ListAttributes
         {
-            [StronglyApiedChild("item"), StronglyApiedArray(), StronglyApiedObject()] public Item[] items;
+            [StronglyApiedXmlElement(), StronglyApiedArray(), StronglyApiedObject()] public Item[] items;
 
             public class Item
             {
-                [StronglyApiedAttribute(), StronglyApiedString()] public string field;
+                [StronglyApiedXmlElement(), StronglyApiedString()] public string field;
             }
         }
 
@@ -114,32 +114,32 @@ namespace BreadTh.StronglyApied.Samples
 
         public class StringAttributes
         {
-            [StronglyApiedAttribute(), StronglyApiedString()]               public string good;
-            [StronglyApiedAttribute(), StronglyApiedString()]               public string bad;
-            [StronglyApiedAttribute(), StronglyApiedString(optional: true)] public string goodOptional;
+            [StronglyApiedXmlAttribute(), StronglyApiedString()]               public string good;
+            [StronglyApiedXmlAttribute(), StronglyApiedString()]               public string bad;
+            [StronglyApiedXmlAttribute(), StronglyApiedString(optional: true)] public string goodOptional;
         }
 
         public class IntegerAttributes
         {
-            [StronglyApiedAttribute(), StronglyApiedLong()]               public long good;
-            [StronglyApiedAttribute(), StronglyApiedLong()]               public long bad;
-            [StronglyApiedAttribute(), StronglyApiedLong(optional: true)] public long? goodOptional;
+            [StronglyApiedXmlAttribute(), StronglyApiedLong()]               public long good;
+            [StronglyApiedXmlAttribute(), StronglyApiedLong()]               public long bad;
+            [StronglyApiedXmlAttribute(), StronglyApiedLong(optional: true)] public long? goodOptional;
         }
 
         public class DecimalAttributes
         {
-            [StronglyApiedAttribute(), StronglyApiedDecimal()]               public decimal good;
-            [StronglyApiedAttribute(), StronglyApiedDecimal()]               public decimal bad;
-            [StronglyApiedAttribute(), StronglyApiedDecimal(optional: true)] public decimal goodOptional;
+            [StronglyApiedXmlAttribute(), StronglyApiedDecimal()]               public decimal good;
+            [StronglyApiedXmlAttribute(), StronglyApiedDecimal()]               public decimal bad;
+            [StronglyApiedXmlAttribute(), StronglyApiedDecimal(optional: true)] public decimal goodOptional;
         }
 
         public class OptionAttributes
         {
             public enum Values { Undefined, Option1, Option2 }
 
-            [StronglyApiedAttribute(), StronglyApiedOption()]               public Values good;
-            [StronglyApiedAttribute(), StronglyApiedOption()]               public Values bad;
-            [StronglyApiedAttribute(), StronglyApiedOption(optional: true)] public Values goodOptional;
+            [StronglyApiedXmlAttribute(), StronglyApiedOption()]               public Values good;
+            [StronglyApiedXmlAttribute(), StronglyApiedOption()]               public Values bad;
+            [StronglyApiedXmlAttribute(), StronglyApiedOption(optional: true)] public Values goodOptional;
         }
 
         public const string exampleInput =

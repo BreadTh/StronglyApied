@@ -4,67 +4,106 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using BreadTh.StronglyApied.Direct.Core;
+using BreadTh.StronglyApied.Core;
 using BreadTh.StronglyApied.Attributes;
 using BreadTh.StronglyApied.Attributes.Extending;
 using BreadTh.StronglyApied.Attributes.Core;
-using System.Xml.Linq;
 
-namespace BreadTh.StronglyApied.Direct
+namespace BreadTh.StronglyApied
 {
     public class ModelValidator : IModelValidator
     {
-        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>((Stream rawbody, DataModel dataModel) parameters, Func<List<ErrorDescription>, OUTCOME> onValidationError, Func<MODEL, Task<OUTCOME>> onSuccess)
+        public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(
+            Stream rawbody
+        ,   Func<List<ErrorDescription>, OUTCOME> onValidationError
+        ,   Func<MODEL, Task<OUTCOME>> onSuccess    
+        ,   bool leaveStreamOpen = true)
         {
-            using StreamReader reader = new StreamReader(parameters.rawbody);
-            return await TryParse((await reader.ReadToEndAsync(), parameters.dataModel), onValidationError, onSuccess);
+            using StreamReader reader = new StreamReader(rawbody, leaveOpen: leaveStreamOpen);
+            return await TryParse(await reader.ReadToEndAsync(), onValidationError, onSuccess);
         }
 
         public async Task<OUTCOME> TryParse<OUTCOME, MODEL>(
-            (string rawbody, DataModel dataModel) parameters
+            string rawbody
         ,   Func<List<ErrorDescription>, OUTCOME> onValidationError
         ,   Func<MODEL, Task<OUTCOME>> onSuccess)
         {
-            var result = TryParse<MODEL>(parameters.rawbody, parameters.dataModel);
+            var result = TryParse<MODEL>(rawbody);
 
             return result.errors.Count() == 0
             ?   await onSuccess(result.result)
             :   onValidationError(result.errors);
         }
 
-        public async Task<(T result, List<ErrorDescription> errors)> TryParse<T>(Stream rawbody, DataModel dataModel)
+        public async Task<(MODEL result, List<ErrorDescription> errors)> TryParse<MODEL>(Stream rawbody, bool leaveStreamOpen = true)
         {
-            using StreamReader reader = new StreamReader(rawbody);
-            return TryParse<T>(await reader.ReadToEndAsync(), dataModel);
+            using StreamReader reader = new StreamReader(rawbody, leaveOpen: leaveStreamOpen);
+            return TryParse<MODEL>(await reader.ReadToEndAsync());
         }
 
-        public (T result, List<ErrorDescription> errors) TryParse<T>(string rawbody, DataModel dataModel) =>
-            dataModel switch
-            {   DataModel.JSON => MapJsonToModel<T>(rawbody)
-            ,   DataModel.XML => MapXmlToModel<T>(rawbody)
+        public (MODEL result, List<ErrorDescription> errors) TryParse<MODEL>(string rawbody)
+        {
+            var rootAttribute = typeof(MODEL).GetCustomAttribute<StronglyApiedRootAttribute>(inherit: false);
+
+            if(rootAttribute == null)
+                throw new ModelAttributeException(
+                    "All objects used as the root type, \"MODEL\", in ModelValidator.TryParse must be tagged with StronglyApiedRootAttribute"
+                +   $", but none was found at {typeof(MODEL).FullName}");
+
+            var (result, errors) = rootAttribute.datamodel switch
+            {   DataModel.Json => MapJsonToModel(rawbody, typeof(MODEL))
+            ,   DataModel.Xml => MapXmlToModel(rawbody, typeof(MODEL))
             ,   _ => throw new NotImplementedException()
             };
+            return ((MODEL)result, errors);
+        }
+
+        public (object result, List<ErrorDescription> errors) TryParse(string rawbody, Type type)
+        {
+            var rootAttribute = type.GetCustomAttribute<StronglyApiedRootAttribute>(inherit: false);
+
+            if(rootAttribute == null)
+                throw new ModelAttributeException(
+                    "All objects used as the root type, \"MODEL\", in ModelValidator.TryParse must be tagged with StronglyApiedRootAttribute"
+                +   $", but none was found at {type.FullName}");
+
+            return rootAttribute.datamodel switch
+            {   DataModel.Json => MapJsonToModel(rawbody, type)
+            ,   DataModel.Xml => MapXmlToModel(rawbody, type)
+            ,   _ => throw new NotImplementedException()
+            };
+        }
 
         //No, this is not an optimal implementation by any measure. If you wanna improve it, be my guest.
-        public List<ErrorDescription> ValidateModel<T>(T value, DataModel dataModel) =>
-            dataModel switch
-            {   DataModel.JSON => MapJsonToModel<T>(JsonConvert.SerializeObject(value)).errors
+        public List<ErrorDescription> ValidateModel<MODEL>(MODEL value)
+        {
+            var rootAttribute = typeof(MODEL).GetCustomAttribute<StronglyApiedRootAttribute>(inherit: false);
+
+            if(rootAttribute == null)
+                throw new ModelAttributeException(
+                    "All objects used as the root type, \"MODEL\", in ModelValidator.TryParse must be tagged with StronglyApiedRootAttribute"
+                +   $", but none was found at {typeof(MODEL).FullName}");
+            
+            return rootAttribute.datamodel switch
+            {   DataModel.Json => MapJsonToModel(JsonConvert.SerializeObject(value), typeof(MODEL)).errors
             ,   _ => throw new NotImplementedException()
             };
+        }
 
-        private (T result, List<ErrorDescription> errors) MapJsonToModel<T>(string rawbody, string rootPath = "")
+        private (object result, List<ErrorDescription> errors) MapJsonToModel(string rawbody, Type rootType)
         {
             JObject rootToken;
             try
             {
-                //though technically the root may be any of the json datatypes (yes, even null), we only want to support object as root.
-                rootToken = JObject.Parse(rawbody.Trim());
+                //though technically the root may be any of the json datatypes (yes, even null), we only want to support object as root
+                rootToken = JObject.Load(new JsonTextReader(new StringReader(rawbody.Trim())) { FloatParseHandling = FloatParseHandling.Decimal }, null);
             }
-            catch (Exception)
+            catch
             {
                 return (default, new List<ErrorDescription>() { ErrorDescription.InvalidInputData(rawbody) });
             }
@@ -74,11 +113,10 @@ namespace BreadTh.StronglyApied.Direct
             //make direct reference to the error list below:
             List<ErrorDescription> errors = new List<ErrorDescription>();
             
-            T result = (T)MapObjectPostValidation(typeof(T), rootToken, rootPath);
+            object result = MapObjectPostValidation(rootType, rootToken, "");
             
             return (result, errors);
             
-
             //return types must be dynamic as one cannot infer the fieldtypes of generics at compiletime.
 
             dynamic MapObject(FieldInfo field, JToken value, string path)
@@ -88,7 +126,7 @@ namespace BreadTh.StronglyApied.Direct
                 if(attribute == null)
                     throw new ModelAttributeException(
                         "All object fields and array of object fields must be tagged with StronglyApiedObjectAttribute"
-                    +   $", but none was found at {typeof(T).FullName}.{path}");
+                    +   $", but none was found at {rootType.FullName}.{path}");
 
                 if(value == null || value.Type == JTokenType.Null || value.Type == JTokenType.Undefined)
                 {
@@ -150,7 +188,7 @@ namespace BreadTh.StronglyApied.Direct
                 if(arrayAttribute == null)
                     throw new ModelAttributeException(
                         $"All array fields must be tagged with StronglyApiedArrayAttribute"
-                    +   $", but none was found at {typeof(T).FullName}.{path}");
+                    +   $", but none was found at {rootType.FullName}.{path}");
 
                 if(value == null || value.Type == JTokenType.Null || value.Type == JTokenType.Undefined)
                 {
@@ -202,7 +240,7 @@ namespace BreadTh.StronglyApied.Direct
                 if(fieldAttribute == null)
                     throw new ModelAttributeException(
                         $"All primitive fields must be tagged with a child of StronglyApiedFieldBaseAttribute"
-                    +   $", but none was found at {typeof(T).FullName}.{path}");
+                    +   $", but none was found at {rootType.FullName}.{path}");
 
                 if(value == null || value.Type == JTokenType.Null || value.Type == JTokenType.Undefined)
                 {
@@ -212,7 +250,7 @@ namespace BreadTh.StronglyApied.Direct
                 }
 
                 StronglyApiedFieldBase.TryParseResult tryParseOutcome = 
-                    fieldAttribute.TryParse(field.FieldType, value.ToCultureInvariantString(), path);
+                    fieldAttribute.TryParse(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, value.ToCultureInvariantString(), path);
 
                 if(tryParseOutcome.status == StronglyApiedFieldBase.TryParseResult.Status.Invalid)
                     errors.Add(tryParseOutcome.error);
@@ -243,7 +281,7 @@ namespace BreadTh.StronglyApied.Direct
                     "Generic types other than Nullable<T> are not yet supported. "
                 +   "If you need a list, use T[] instead of List<T>");
 
-            if (type.IsStruct())
+            if (type.IsStruct() && type != typeof(decimal) && type != typeof(decimal?))
                 throw new NotImplementedException("Structs are not yet supported. Use classes.");
 
             if (type.IsArray && !type.IsSZArray)
@@ -254,7 +292,7 @@ namespace BreadTh.StronglyApied.Direct
         //Such as XML's lack of a concept of lists vs single instances, or JSONs lack of attributes.
         //I ultimately decided that code duplication was a lesser evil than trying to abstract those differences away with
         //a wrapper and logic that tries to accomodate both.
-        private (T result, List<ErrorDescription> errors) MapXmlToModel<T>(string rawbody)
+        private (object result, List<ErrorDescription> errors) MapXmlToModel(string rawbody, Type rootType)
         {
             XDocument document;
 
@@ -268,7 +306,7 @@ namespace BreadTh.StronglyApied.Direct
             }
 
             List<ErrorDescription> errors = new List<ErrorDescription>();
-            T result = (T)MapObjectPostValidation(typeof(T), document.Root, "");
+            object result = MapObjectPostValidation(rootType, new XElement("document", document.Root), "");
             return (result, errors);
 
             dynamic MapObject(FieldInfo field, XElement value, string path)
@@ -282,7 +320,7 @@ namespace BreadTh.StronglyApied.Direct
 
                 if (value == null)
                 {
-                    if (!attribute.optional)
+                    if (!attribute.optional) 
                         errors.Add(ErrorDescription.OptionalityViolation(path));
 
                     return null;
@@ -302,14 +340,14 @@ namespace BreadTh.StronglyApied.Direct
 
                 foreach (FieldInfo childField in type.GetFields().Where((FieldInfo fieldInfo) => fieldInfo.IsPublic && !fieldInfo.IsStatic))
                 {
-                    StronglyApiedRelationBaseAttribute relationAttribute = childField.GetCustomAttribute<StronglyApiedRelationBaseAttribute>(true);
-                    string fieldName = relationAttribute?.name ?? childField.Name;
+                    StronglyApiedXmlRelationBaseAttribute relationAttribute = childField.GetCustomAttribute<StronglyApiedXmlRelationBaseAttribute>(true);
+                    string fieldName = childField.Name;
 
                     int errorCountBeforeParse = errors.Count;
 
                     string childPath = $"{path}{(string.IsNullOrEmpty(path) ? "" : ".")}{fieldName}";
 
-                    dynamic parsed = DetermineFieldTypeCategory(type) switch
+                    dynamic parsed = DetermineFieldTypeCategory(childField.FieldType) switch
                     {   FieldTypeCategory.Array => MapArray(childField, value, childPath)
                     ,   FieldTypeCategory.Object => MapObject(childField, value.Element(XName.Get(fieldName)), childPath)
                     ,   FieldTypeCategory.Value => MapFieldInObject(childField, value, childPath)
@@ -340,8 +378,8 @@ namespace BreadTh.StronglyApied.Direct
                             "All array fields must be tagged with StronglyApiedArrayAttribute, "
                         +   $"but none was found at {path}");
 
-                StronglyApiedRelationBaseAttribute relationAttribute = field.GetCustomAttribute<StronglyApiedRelationBaseAttribute>(true);
-                string fieldName = relationAttribute?.name ?? field.Name;
+                StronglyApiedXmlRelationBaseAttribute relationAttribute = field.GetCustomAttribute<StronglyApiedXmlRelationBaseAttribute>(true);
+                string fieldName = field.Name;
 
                 //XML doesn't have a concept of lists, so testing if one is null/empty is troublesome.
                 //A parent with an empty list looks exactly like a parent without a list.
@@ -412,7 +450,7 @@ namespace BreadTh.StronglyApied.Direct
                     return null;
                 }
 
-                var tryParseOutcome = datatypeAttribute.TryParse(field.FieldType, value.ToString(), path);
+                var tryParseOutcome = datatypeAttribute.TryParse(field.FieldType.GetElementType(), value.Value, path);
 
                 if (tryParseOutcome.status == StronglyApiedFieldBase.TryParseResult.Status.Invalid)
                     errors.Add(tryParseOutcome.error);
@@ -422,9 +460,9 @@ namespace BreadTh.StronglyApied.Direct
 
             dynamic MapFieldInObject(FieldInfo field, XElement parentValue, string path)
             {
-                StronglyApiedRelationBaseAttribute relationAttribute = field.GetCustomAttribute<StronglyApiedRelationBaseAttribute>(true);
-                string childFieldName = relationAttribute?.name ?? field.Name;
-                bool childIsAttribute = relationAttribute != null && relationAttribute.GetType() == typeof(StronglyApiedAttributeAttribute);
+                StronglyApiedXmlRelationBaseAttribute relationAttribute = field.GetCustomAttribute<StronglyApiedXmlRelationBaseAttribute>(true);
+                string childFieldName = field.Name;
+                bool childIsAttribute = relationAttribute != null && relationAttribute.GetType() == typeof(StronglyApiedXmlAttributeAttribute);
 
                 StronglyApiedFieldBase datatypeAttribute = field.GetCustomAttribute<StronglyApiedFieldBase>(true);
                 
@@ -432,7 +470,6 @@ namespace BreadTh.StronglyApied.Direct
                     throw new ModelAttributeException(
                         "All primitive fields must be tagged with a child of StronglyApiedFieldBaseAttribute, "
                     +   $"but none was found at {path}");
-
 
                 string childValue;
 
@@ -467,7 +504,7 @@ namespace BreadTh.StronglyApied.Direct
                         return null;
                     }
 
-                    childValue = childElement.ToString();
+                    childValue = childElement.Value.ToString();
                 }
                 
                 var tryParseOutcome = datatypeAttribute.TryParse(field.FieldType, childValue, path);

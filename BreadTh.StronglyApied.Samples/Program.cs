@@ -4,24 +4,21 @@ using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
-using BreadTh.StronglyApied.Direct;
-
 namespace BreadTh.StronglyApied.Samples
 {
     class Program
     {
         static void Main()
         {
-            Console.WriteLine(@"Press 'x' to run the XML example, 'r' to run the redis example, or 'j' to run the JSON example");
+            Console.WriteLine(@"Press 'x' to run the XML example or 'j' to run the JSON example");
 
-            Action example = Console.ReadKey().KeyChar switch 
+            Action chosenExample = Console.ReadKey().KeyChar switch 
             {   'x'  => () => Direct<ExampleXmlModel>(ExampleXmlModel.exampleInput)
             ,   'j'  => () => Direct<ExampleJsonModel>(ExampleJsonModel.jsonInput)
-            ,   'r'  => () => RedisExample.Example()
-            ,   _    => () => Console.WriteLine("I didn't understand that key :(")
+            ,   _    => () => Console.WriteLine("SI didn't understand that key :(")
             };
 
-            example();
+            chosenExample();
             Console.ReadKey();
         }
 

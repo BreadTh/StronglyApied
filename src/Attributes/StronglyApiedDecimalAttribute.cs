@@ -14,7 +14,7 @@ namespace BreadTh.StronglyApied.Attributes
         public int maxDecimalDigits;
 
         //decimals aren't primitives, so they aren't allowed in metadata in the current version of dotnet, hence the use of strings.
-        public StronglyApiedDecimalAttribute(string minValue = "-79228162514264337593543950335", string maxValue = "79228162514264337593543950335", int minDecimalDigits = 0, int maxDecimalDigits = 9, bool optional = false)
+        public StronglyApiedDecimalAttribute(string minValue = "-79228162514264337593543950335", string maxValue = "79228162514264337593543950335", int minDecimalDigits = 0, int maxDecimalDigits = 29, bool optional = false)
             : base(optional)
         {
             this.minValue = minValue;

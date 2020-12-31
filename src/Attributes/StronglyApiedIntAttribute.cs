@@ -5,12 +5,12 @@ using BreadTh.StronglyApied.Attributes.Extending;
 namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
-    public sealed class StronglyApiedInt : StronglyApiedFieldBase
+    public sealed class StronglyApiedIntAttribute : StronglyApiedFieldBase
     {
         public int minValue;
         public int maxValue;
     
-        public StronglyApiedInt(int minValue = int.MinValue, int maxValue = int.MaxValue, bool optional = false) 
+        public StronglyApiedIntAttribute(int minValue = int.MinValue, int maxValue = int.MaxValue, bool optional = false) 
             : base(optional) 
         {
             this.minValue = minValue;
@@ -21,7 +21,7 @@ namespace BreadTh.StronglyApied.Attributes
         {
             if(type != typeof(int) && type != typeof(int?))
                 throw new InvalidOperationException(
-                    $"Fields tagged with {typeof(StronglyApiedInt).FullName} "
+                    $"Fields tagged with {typeof(StronglyApiedIntAttribute).FullName} "
                 +   $"must be a {typeof(int).FullName}, "
                 +   $"but the given type was {type.FullName}");
            

@@ -3,7 +3,7 @@ using System;
 using System.Globalization;
 using System.Xml.Linq;
 
-namespace BreadTh.StronglyApied.Direct.Core
+namespace BreadTh.StronglyApied.Core
 {
     internal static class ExtensionMethods 
     {

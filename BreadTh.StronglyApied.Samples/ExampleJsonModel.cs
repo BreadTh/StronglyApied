@@ -2,7 +2,7 @@
 
 namespace BreadTh.StronglyApied.Samples
 {
-    [StronglyApiedRoot(DataModel.JSON)]
+    [StronglyApiedRoot(DataModel.Json)]
     public class ExampleJsonModel
     {
         [StronglyApiedObject()] public Strings strings;

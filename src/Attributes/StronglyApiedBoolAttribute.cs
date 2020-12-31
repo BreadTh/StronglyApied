@@ -15,7 +15,7 @@ namespace BreadTh.StronglyApied.Attributes
             if(type != typeof(bool) && type != typeof(bool?))
                 throw new InvalidOperationException(
                     $"Fields tagged with {typeof(StronglyApiedBoolAttribute).FullName} "
-                +   $"must be a {typeof(bool).FullName},"
+                +   $"must be a {typeof(bool).FullName}, "
                 +   $"but the given type was {type.FullName}");
             
             string lowerTrimmedValue = value.Trim().ToLower();

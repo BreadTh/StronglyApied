@@ -6,15 +6,15 @@ using BreadTh.StronglyApied.Attributes.Extending;
 namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
-    public sealed class StronglyApiedEmailAddress : StronglyApiedFieldBase
+    public sealed class StronglyApiedEmailAddressAttribute : StronglyApiedFieldBase
     {
-        public StronglyApiedEmailAddress(bool optional = false) : base(optional) { }
+        public StronglyApiedEmailAddressAttribute(bool optional = false) : base(optional) { }
 
         public override TryParseResult TryParse(Type type, string value, string path)
         {
             if(type != typeof(string))
                 throw new InvalidOperationException(
-                    $"Fields tagged with {typeof(StronglyApiedEmailAddress).FullName} "
+                    $"Fields tagged with {typeof(StronglyApiedEmailAddressAttribute).FullName} "
                 +   $"must be {typeof(string).FullName}, "
                 +   $" but the given type was {type.FullName}");
 
