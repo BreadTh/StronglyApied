@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StronglyApied", "src\StronglyApied.csproj", "{1106132F-055F-4794-BD8B-8E719439456A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StronglyApied", "src\BreadTh.StronglyApied.csproj", "{1106132F-055F-4794-BD8B-8E719439456A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StronglyApied.Tests", "tests\StronglyApied.Tests.csproj", "{9D6B7932-27D5-4BF6-B132-137206916F06}"
 EndProject

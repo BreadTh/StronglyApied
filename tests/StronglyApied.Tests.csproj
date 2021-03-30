@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\StronglyApied.csproj" />
+    <ProjectReference Include="..\src\BreadTh.StronglyApied.csproj" />
   </ItemGroup>
 
 </Project>
