@@ -24,7 +24,7 @@ namespace BreadTh.StronglyApied.Samples
 
         static void Direct<T>(string text)
         {
-            (T result, IEnumerable<ErrorDescription> errors) = new ModelValidator().TryParse<T>(text);
+            (T result, IEnumerable<ErrorDescription> errors) = new ModelValidator().Parse<T>(text);
 
             if (errors.Count() != 0)
                 Console.WriteLine($"Invalid! :c\n\n{JsonConvert.SerializeObject(errors, Formatting.Indented)}");

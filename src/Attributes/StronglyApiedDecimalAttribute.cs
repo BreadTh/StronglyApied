@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Globalization;
 
+using OneOf;
+
 using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
-    public sealed class StronglyApiedDecimalAttribute : StronglyApiedFieldBase
+    public sealed class StronglyApiedDecimalAttribute : StronglyApiedFieldBaseAttribute
     {
-        public string minValue;
-        public string maxValue;
-        public int minDecimalDigits;
-        public int maxDecimalDigits;
+        public readonly string minValue;
+        public readonly string maxValue;
+        public readonly int minDecimalDigits;
+        public readonly int maxDecimalDigits;
 
         //decimals aren't primitives, so they aren't allowed in metadata in the current version of dotnet, hence the use of strings.
         public StronglyApiedDecimalAttribute(string minValue = "-79228162514264337593543950335", string maxValue = "79228162514264337593543950335", int minDecimalDigits = 0, int maxDecimalDigits = 29, bool optional = false)
@@ -23,7 +25,7 @@ namespace BreadTh.StronglyApied.Attributes
             this.maxDecimalDigits = maxDecimalDigits;
         }
 
-        public override TryParseResult TryParse(Type type, string value, string path)
+        public override OneOf<ParseSuccess, (ErrorDescription description, dynamic bestParseAttempt)> Parse(Type type, string value, string path)
         {
             if(type != typeof(decimal) && type != typeof(decimal?))
                 throw new InvalidOperationException(
@@ -32,28 +34,26 @@ namespace BreadTh.StronglyApied.Attributes
                 +   $"but the given type was {type.FullName}");;
 
             string trimmedValue = value.Trim();
-            bool parseSuccessful = decimal.TryParse(trimmedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal parsedValue);
 
-            if(!parseSuccessful)
-                return TryParseResult.Invalid(ErrorDescription.InvalidInt64(value, path));
+            if(!decimal.TryParse(trimmedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal parsedValue))
+                return (ErrorDescription.InvalidInt64(value, path), default);
 
-            if(parsedValue < decimal.Parse(minValue))
-                return TryParseResult.Invalid(ErrorDescription.NumericTooSmall(parsedValue.ToString(CultureInfo.InvariantCulture), minValue, path));
+            if(parsedValue < decimal.Parse(minValue, NumberStyles.Number, CultureInfo.InvariantCulture))
+                return (ErrorDescription.NumericTooSmall(parsedValue.ToString(CultureInfo.InvariantCulture), minValue, path), parsedValue);
 
-            if(parsedValue > decimal.Parse(maxValue))
-                return TryParseResult.Invalid(ErrorDescription.NumericTooLarge(parsedValue.ToString(CultureInfo.InvariantCulture), maxValue, path));
+            if(parsedValue > decimal.Parse(maxValue, NumberStyles.Number, CultureInfo.InvariantCulture))
+                return (ErrorDescription.NumericTooLarge(parsedValue.ToString(CultureInfo.InvariantCulture), maxValue, path), parsedValue);
 
             string[] parts = trimmedValue.Split('.');
             int decimalDigits = parts.Length != 2 ? 0 : parts[1].Length;
 
             if(decimalDigits < minDecimalDigits)
-                return TryParseResult.Invalid(ErrorDescription.TooFewDecimalDigits(parsedValue, minDecimalDigits, path));
+                return (ErrorDescription.TooFewDecimalDigits(parsedValue, minDecimalDigits, path), parsedValue);
 
             if(decimalDigits > maxDecimalDigits)
-                return TryParseResult.Invalid(ErrorDescription.TooManyDecimalDigits(parsedValue, maxDecimalDigits, path));
+                return (ErrorDescription.TooManyDecimalDigits(parsedValue, maxDecimalDigits, path), parsedValue);
 
-
-            return TryParseResult.Ok(parsedValue);
+            return ParseSuccess.From(parsedValue);
         }
     }
 }

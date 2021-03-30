@@ -1,14 +1,16 @@
 ﻿using System;
 
+using OneOf;
+
 using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
-    public sealed class StronglyApiedLongAttribute : StronglyApiedFieldBase
+    public sealed class StronglyApiedLongAttribute : StronglyApiedFieldBaseAttribute
     {
-        public long minValue;
-        public long maxValue;
+        public readonly long minValue;
+        public readonly long maxValue;
 
         public StronglyApiedLongAttribute(long minValue = long.MinValue, long maxValue = long.MaxValue, bool optional = false) : base(optional)
         {
@@ -16,7 +18,7 @@ namespace BreadTh.StronglyApied.Attributes
             this.maxValue = maxValue;
         }
 
-        public override TryParseResult TryParse(Type type, string value, string path)
+        public override OneOf<ParseSuccess, (ErrorDescription description, dynamic bestParseAttempt)> Parse(Type type, string value, string path)
         {
             if(type != typeof(long) && type != typeof(long?))
                 throw new InvalidOperationException(
@@ -28,15 +30,15 @@ namespace BreadTh.StronglyApied.Attributes
             bool parseSuccessful = long.TryParse(trimmedValue, out long parsedValue);
 
             if(!parseSuccessful)
-                return TryParseResult.Invalid(ErrorDescription.InvalidInt64(value, path));
+                return (ErrorDescription.InvalidInt64(value, path), default);
 
             if(parsedValue < minValue)
-                return TryParseResult.Invalid(ErrorDescription.NumericTooSmall(parsedValue, minValue, path));
+                return (ErrorDescription.NumericTooSmall(parsedValue, minValue, path), parsedValue);
 
             if(parsedValue > maxValue)
-                return TryParseResult.Invalid(ErrorDescription.NumericTooLarge(parsedValue, maxValue, path));
+                return (ErrorDescription.NumericTooLarge(parsedValue, maxValue, path), parsedValue);
 
-            return TryParseResult.Ok(parsedValue);
+            return ParseSuccess.From(parsedValue);
         }
     }
 }

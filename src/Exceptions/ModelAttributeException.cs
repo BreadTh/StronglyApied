@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BreadTh.StronglyApied.Core
+namespace BreadTh.StronglyApied.Exceptions
 {
     public class ModelAttributeException : Exception
     {

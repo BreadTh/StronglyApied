@@ -1,18 +1,36 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Mail;
 using System.Xml.Linq;
+using ValueOf;
 
 namespace BreadTh.StronglyApied.Core
 {
-    internal static class ExtensionMethods 
+    public static class ExtensionMethods 
     {
         public static bool IsStruct(this Type type) =>
-            type.IsValueType && !type.IsPrimitive && !type.IsEnum;
+            type.IsValueType 
+        && !type.IsPrimitive
+        && type != typeof(decimal)  //decimal is the only builtin type that's both valuetype and not a primitive.
+        && type != typeof(decimal?)
+        && type != typeof(DateTime) //though DateTime is also both - but we want to treat it as a value.
+        && type != typeof(DateTime?)
+        && !type.IsEnum;
 
-        public static bool IsNonStringClass(this Type type) =>
-            type.IsClass && type != typeof(string);
+        public static bool IsObject(this Type type)
+        {
+            if(new List<Type>{ typeof(string), typeof(MailAddress) }.Contains(type))
+                return false;
 
+            //we want to treat ValueOf as a field, not as an object.
+            if(type.BaseType != null && type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == typeof(ValueOf<,>))
+                return false;
+
+            return type.IsClass;
+        }
+ 
         public static string ToCultureInvariantString(this JToken token) =>
             token.GetType() == typeof(JValue)
             ?   ((JValue) token).ToString(CultureInfo.InvariantCulture)

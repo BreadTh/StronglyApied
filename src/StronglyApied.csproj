@@ -9,16 +9,18 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/BreadTh/StronglyApied</RepositoryUrl>
     <Copyright>BreadTh</Copyright>
-    <Version>2.0.0.1</Version>
+    <Version>2.0.0.2</Version>
     <PackageProjectUrl>https://github.com/BreadTh/StronglyApied</PackageProjectUrl>
-    <AssemblyVersion>2.0.0.1</AssemblyVersion>
-    <FileVersion>2.0.0.1</FileVersion>
+    <AssemblyVersion>2.0.0.2</AssemblyVersion>
+    <FileVersion>2.0.0.2</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="OneOf" Version="3.0.178" />
     <PackageReference Include="RestSharp" Version="106.11.7" />
     <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
+    <PackageReference Include="ValueOf" Version="1.0.17" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,10 +29,5 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\ErrorDescriptions\src\ErrorDescriptions\ErrorDescriptions.csproj" />
-  </ItemGroup>
-
 
 </Project>

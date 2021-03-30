@@ -3,16 +3,19 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 
+using OneOf;
+
 using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public sealed class StronglyApiedOptionAttribute : StronglyApiedFieldBase
+    public sealed class StronglyApiedOptionAttribute : StronglyApiedFieldBaseAttribute
     {
         public StronglyApiedOptionAttribute(bool optional = false) : base(optional) { }
 
-        public override TryParseResult TryParse(Type type, string value, string path)
+        public override OneOf<ParseSuccess, (ErrorDescription description, dynamic bestParseAttempt)> Parse(
+            Type type, string value, string path)
         {
             if(!type.IsEnum)
                 throw new InvalidOperationException(
@@ -30,9 +33,9 @@ namespace BreadTh.StronglyApied.Attributes
                 .ToList();
 
             if(!enumValues.Contains(trimmedValue))
-                return TryParseResult.Invalid(ErrorDescription.InvalidOption(value, enumValues, path));
+                return (ErrorDescription.InvalidOption(value, enumValues, path), default);
             else
-                return TryParseResult.Ok(Enum.Parse(type, trimmedValue));
+                return ParseSuccess.From(Enum.Parse(type, trimmedValue));
         }
     }
 }

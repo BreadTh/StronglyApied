@@ -7,7 +7,7 @@ namespace BreadTh.StronglyApied.Attributes
     [AttributeUsage(AttributeTargets.Class)] 
     public sealed class StronglyApiedRootAttribute : Attribute
     {
-        public DataModel datamodel;
+        public readonly DataModel datamodel;
         public StronglyApiedRootAttribute(DataModel datamodel)
         {
             this.datamodel = datamodel;

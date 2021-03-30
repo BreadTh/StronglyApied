@@ -24,7 +24,7 @@ namespace BreadTh.StronglyApied.Tests
         public Property ReturnsErrorOnInvalidJson(string input)
         {
             (ReturnsErrorOnInvalidJsonModel result, List<ErrorDescription> errors) = 
-                _validator.TryParse<ReturnsErrorOnInvalidJsonModel>(input);
+                _validator.Parse<ReturnsErrorOnInvalidJsonModel>(input);
 
             return (
                 result == null
@@ -75,7 +75,7 @@ namespace BreadTh.StronglyApied.Tests
             string input = new JObject(){ { fieldName, JToken.FromObject(value) } }.ToString();
 
             (object result, List<ErrorDescription> errors) = 
-                _validator.TryParse(input, type);
+                _validator.Parse(input, type);
 
             return (
                 errors.Count == 0 
@@ -126,7 +126,7 @@ namespace BreadTh.StronglyApied.Tests
             string input = new JObject(){ { fieldName, JArray.FromObject(values.Select(value => JToken.FromObject(value))) } }.ToString();
 
             (object result, List<ErrorDescription> errors) = 
-                _validator.TryParse(input, type);
+                _validator.Parse(input, type);
 
             Func<bool> test = () =>
             {
@@ -194,7 +194,7 @@ namespace BreadTh.StronglyApied.Tests
             string input = new JObject(){{ objectFieldName, new JObject(){{ valueFieldName, JToken.FromObject(value) }} }}.ToString();
 
             (object result, List<ErrorDescription> errors) = 
-                _validator.TryParse(input, outerType);
+                _validator.Parse(input, outerType);
 
             Func<bool> test = () =>
             {

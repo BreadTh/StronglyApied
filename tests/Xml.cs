@@ -32,7 +32,7 @@ namespace BreadTh.StronglyApied.Tests
         public Property ReturnsErrorOnInvalidXml(string input)
         {
             (ReturnsErrorOnInvalidJXmlodel result, List<ErrorDescription> errors) = 
-                _validator.TryParse<ReturnsErrorOnInvalidJXmlodel>(input);
+                _validator.Parse<ReturnsErrorOnInvalidJXmlodel>(input);
 
             return (
                 result == null
@@ -91,7 +91,7 @@ namespace BreadTh.StronglyApied.Tests
             });
 
             (object result, List<ErrorDescription> errors) = 
-                _validator.TryParse(input, type);
+                _validator.Parse(input, type);
 
             var resVal = (VALUE_TYPE)type.GetField(fieldName).GetValue(result);
 
@@ -163,7 +163,7 @@ namespace BreadTh.StronglyApied.Tests
             });
 
             (object result, List<ErrorDescription> errors) = 
-                _validator.TryParse(input, outerType);
+                _validator.Parse(input, outerType);
 
             Func<bool> test = () =>
             {
@@ -239,7 +239,7 @@ namespace BreadTh.StronglyApied.Tests
             });
 
             (object result, List<ErrorDescription> errors) = 
-                _validator.TryParse(input, outerType);
+                _validator.Parse(input, outerType);
 
             Func<bool> test = () =>
             {

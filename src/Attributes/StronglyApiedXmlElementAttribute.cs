@@ -1,5 +1,6 @@
-﻿using BreadTh.StronglyApied.Attributes.Core;
-using System;
+﻿using System;
+
+using BreadTh.StronglyApied.Attributes.Core;
 
 namespace BreadTh.StronglyApied.Attributes
 {
