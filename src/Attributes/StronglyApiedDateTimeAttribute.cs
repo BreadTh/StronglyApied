@@ -11,7 +11,7 @@ namespace BreadTh.StronglyApied.Attributes
     public sealed class StronglyApiedDateTimeAttribute : StronglyApiedFieldBaseAttribute
     {
         string exactFormat;
-        public StronglyApiedDateTimeAttribute(string exactFormat = null, bool optional = false) : base(optional) 
+        public StronglyApiedDateTimeAttribute(string name = null, string exactFormat = null, bool optional = false) : base(name, optional) 
         {
             this.exactFormat = exactFormat;
         }

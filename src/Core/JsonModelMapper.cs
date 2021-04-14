@@ -11,6 +11,7 @@ using BreadTh.StronglyApied.Attributes;
 using BreadTh.StronglyApied.Exceptions;
 using BreadTh.StronglyApied.Attributes.Extending;
 using ValueOf;
+using BreadTh.StronglyApied.Attributes.Extending.Core;
 
 namespace BreadTh.StronglyApied.Core
 {
@@ -84,8 +85,17 @@ namespace BreadTh.StronglyApied.Core
 
                 foreach (FieldInfo childField in fieldType.GetFields().Where((FieldInfo fieldInfo) => fieldInfo.IsPublic && !fieldInfo.IsStatic))
                 {
-                    var childValue = value.SelectToken(childField.Name);
-                    var childPath = path + (path == "" ? "" : ".") + childField.Name;
+                    StronglyApiedBaseAttribute childfieldAttribute = childField.GetCustomAttribute<StronglyApiedBaseAttribute>(true);
+
+                    if (childfieldAttribute == null)
+                        throw new ModelAttributeException(
+                            $"All fields in an object must be tagged with a child of StronglyApiedBaseAttribute"
+                        + $", but none was found at {rootType.FullName}.{path + (path == "" ? "" : ".") + childField.Name}");
+
+                    var childName = childfieldAttribute.name ?? childField.Name;
+
+                    var childPath = path + (path == "" ? "" : ".") + childName;
+                    var childValue = value.SelectToken(childName);
                     var errorCountBeforeParse = errors.Count;
 
                     dynamic parsed = DetermineFieldTypeCategory(childField.FieldType) switch

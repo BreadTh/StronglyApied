@@ -10,7 +10,7 @@ namespace BreadTh.StronglyApied.Attributes
     [AttributeUsage(AttributeTargets.Field)] 
     public sealed class StronglyApiedEmailAddressAttribute : StronglyApiedFieldBaseAttribute
     {
-        public StronglyApiedEmailAddressAttribute(bool optional = false) : base(optional) { }
+        public StronglyApiedEmailAddressAttribute(string name = null, bool optional = false) : base(name, optional) { }
 
         public override OneOf<ParseSuccess, (ErrorDescription description, dynamic bestParseAttempt)> Parse(
             Type type, string value, string path)

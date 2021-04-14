@@ -12,7 +12,7 @@ namespace BreadTh.StronglyApied.Attributes
         public readonly int minLength;
         public readonly int maxLength;
 
-        public StronglyApiedStringAttribute(int minLength = 0, int maxLength = int.MaxValue, bool optional = false) : base(optional)
+        public StronglyApiedStringAttribute(string name = null, int minLength = 0, int maxLength = int.MaxValue, bool optional = false) : base(name, optional)
         {
             this.minLength = minLength;
             this.maxLength = maxLength;

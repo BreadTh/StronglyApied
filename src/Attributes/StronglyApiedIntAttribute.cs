@@ -12,8 +12,8 @@ namespace BreadTh.StronglyApied.Attributes
         public readonly int minValue;
         public readonly int maxValue;
     
-        public StronglyApiedIntAttribute(int minValue = int.MinValue, int maxValue = int.MaxValue, bool optional = false) 
-            : base(optional) 
+        public StronglyApiedIntAttribute(string name = null, int minValue = int.MinValue, int maxValue = int.MaxValue, bool optional = false) 
+            : base(name, optional)
         {
             this.minValue = minValue;
             this.maxValue = maxValue;
@@ -29,6 +29,10 @@ namespace BreadTh.StronglyApied.Attributes
                 +   $"but the given type was {type.FullName}");
            
             string trimmedValue = value.Trim();
+
+            if(trimmedValue == "" && optional)
+                return ParseSuccess.From(null);
+
             bool parseSuccessful = int.TryParse(trimmedValue, out int parsedValue);
 
             if(!parseSuccessful)

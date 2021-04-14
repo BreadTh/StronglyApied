@@ -10,14 +10,19 @@ namespace BreadTh.StronglyApied.Core
 {
     public static class ExtensionMethods 
     {
-        public static bool IsStruct(this Type type) =>
-            type.IsValueType 
-        && !type.IsPrimitive
-        && type != typeof(decimal)  //decimal is the only builtin type that's both valuetype and not a primitive.
-        && type != typeof(decimal?)
-        && type != typeof(DateTime) //though DateTime is also both - but we want to treat it as a value.
-        && type != typeof(DateTime?)
-        && !type.IsEnum;
+        public static bool IsStruct(this Type type)
+        {
+            if(type.IsGenericType && type.GetGenericTypeDefinition().ToString() == "System.Nullable`1[T]")
+                return IsStruct(type.GetGenericArguments()[0]);
+
+            return 
+                type.IsValueType 
+            && !type.IsPrimitive
+            && type != typeof(decimal)  //decimal is the only builtin type that's both valuetype and not a primitive.
+            && type != typeof(DateTime) //though DateTime is also both - but we want to treat it as a value.
+            && !type.IsEnum;
+        }
+
 
         public static bool IsObject(this Type type)
         {

@@ -12,7 +12,7 @@ namespace BreadTh.StronglyApied.Attributes
         public readonly long minValue;
         public readonly long maxValue;
 
-        public StronglyApiedLongAttribute(long minValue = long.MinValue, long maxValue = long.MaxValue, bool optional = false) : base(optional)
+        public StronglyApiedLongAttribute(string name = null, long minValue = long.MinValue, long maxValue = long.MaxValue, bool optional = false) : base(name, optional)
         {
             this.minValue = minValue;
             this.maxValue = maxValue;

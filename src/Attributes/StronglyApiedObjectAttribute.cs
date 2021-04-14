@@ -1,15 +1,15 @@
-﻿using System;
+﻿using BreadTh.StronglyApied.Attributes.Extending.Core;
+using System;
 
 namespace BreadTh.StronglyApied.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)] 
-    public sealed class StronglyApiedObjectAttribute : Attribute
+    public sealed class StronglyApiedObjectAttribute : StronglyApiedBaseAttribute
     {
-        public readonly bool optional;
         public readonly bool stringified;
-        public StronglyApiedObjectAttribute(bool optional = false, bool stringified = false)
+        public StronglyApiedObjectAttribute(string name = null, bool optional = false, bool stringified = false)
+            : base(name, optional)
         {
-            this.optional = optional;
             this.stringified = stringified;
         }
     }
