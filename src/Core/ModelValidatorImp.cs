@@ -46,51 +46,15 @@ namespace BreadTh.StronglyApied.Core
 
         public static (MODEL result, List<ErrorDescription> errors) Parse<MODEL>(string rawbody)
         {
-            var rootAttribute = typeof(MODEL).GetCustomAttribute<StronglyApiedRootAttribute>(inherit: false);
-
-            if(rootAttribute == null)
-                throw new ModelAttributeException(
-                    "All objects used as the root type, \"MODEL\", in ModelValidator.TryParse must be tagged with StronglyApiedRootAttribute"
-                +   $", but none was found at {typeof(MODEL).FullName}");
-
-            var (result, errors) = rootAttribute.datamodel switch
-            {   DataModel.Json => new JsonModelMapper().MapModel(rawbody, typeof(MODEL))
-            ,    DataModel.Xml => new XmlModelMapper().MapModel(rawbody, typeof(MODEL))
-            ,                _ => throw new NotImplementedException()
-            };
+            var (result, errors) = new JsonModelMapper().MapModel(rawbody, typeof(MODEL));
             return ((MODEL)result, errors);
         }
 
-        public static (object result, List<ErrorDescription> errors) Parse(string rawbody, Type type)
-        {
-            var rootAttribute = type.GetCustomAttribute<StronglyApiedRootAttribute>(inherit: false);
-
-            if(rootAttribute == null)
-                throw new ModelAttributeException(
-                    "All objects used as the root type, \"MODEL\", in ModelValidator.TryParse must be tagged with StronglyApiedRootAttribute"
-                +   $", but none was found at {type.FullName}");
-
-            return rootAttribute.datamodel switch
-            {   DataModel.Json => new JsonModelMapper().MapModel(rawbody, type)
-            ,    DataModel.Xml => new XmlModelMapper().MapModel(rawbody, type)
-            ,                _ => throw new NotImplementedException()
-            };
-        }
+        public static (object result, List<ErrorDescription> errors) Parse(string rawbody, Type type) =>
+            new JsonModelMapper().MapModel(rawbody, type);
 
         //No, this is not an optimal implementation by any measure. If you wanna improve it, be my guest.
-        public static List<ErrorDescription> ValidateModel<MODEL>(MODEL value)
-        {
-            var rootAttribute = typeof(MODEL).GetCustomAttribute<StronglyApiedRootAttribute>(inherit: false);
-
-            if(rootAttribute == null)
-                throw new ModelAttributeException(
-                    "All objects used as the root type, \"MODEL\", in ModelValidator.TryParse must be tagged with StronglyApiedRootAttribute"
-                +   $", but none was found at {typeof(MODEL).FullName}");
-            
-            return rootAttribute.datamodel switch
-            {   DataModel.Json => new JsonModelMapper().MapModel(JsonConvert.SerializeObject(value), typeof(MODEL)).errors
-            ,                _ => throw new NotImplementedException()
-            };
-        }
+        public static List<ErrorDescription> ValidateModel<MODEL>(MODEL value) =>
+            new JsonModelMapper().MapModel(JsonConvert.SerializeObject(value), typeof(MODEL)).errors;
     }
 }
