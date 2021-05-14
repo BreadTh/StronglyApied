@@ -12,6 +12,7 @@ using BreadTh.StronglyApied.Exceptions;
 using BreadTh.StronglyApied.Attributes.Extending;
 using ValueOf;
 using BreadTh.StronglyApied.Attributes.Extending.Core;
+using System.Net.Mail;
 
 namespace BreadTh.StronglyApied.Core
 {
@@ -43,12 +44,8 @@ namespace BreadTh.StronglyApied.Core
 
             dynamic MapObject(FieldInfo field, JToken value, string path)
             {
-                var attribute = field.GetCustomAttribute<StronglyApiedObjectAttribute>(inherit: false);
-
-                if(attribute == null)
-                    throw new ModelAttributeException(
-                        "All object fields and array of object fields must be tagged with StronglyApiedObjectAttribute"
-                    +   $", but none was found at {rootType.FullName}.{path}");
+                var attribute = field.GetCustomAttribute<StronglyApiedObjectAttribute>(inherit: false)
+                    ?? new StronglyApiedObjectAttribute();
 
                 if(value == null || value.Type == JTokenType.Null || value.Type == JTokenType.Undefined)
                 {
@@ -85,12 +82,8 @@ namespace BreadTh.StronglyApied.Core
 
                 foreach (FieldInfo childField in fieldType.GetFields().Where((FieldInfo fieldInfo) => fieldInfo.IsPublic && !fieldInfo.IsStatic))
                 {
-                    StronglyApiedBaseAttribute childfieldAttribute = childField.GetCustomAttribute<StronglyApiedBaseAttribute>(true);
-
-                    if (childfieldAttribute == null)
-                        throw new ModelAttributeException(
-                            $"All fields in an object must be tagged with a child of StronglyApiedBaseAttribute"
-                        + $", but none was found at {rootType.FullName}.{path + (path == "" ? "" : ".") + childField.Name}");
+                    StronglyApiedBaseAttribute childfieldAttribute = childField.GetCustomAttribute<StronglyApiedBaseAttribute>(true)
+                        ?? new StronglyApiedBaseAttribute();
 
                     var childName = childfieldAttribute.name ?? childField.Name;
 
@@ -101,7 +94,7 @@ namespace BreadTh.StronglyApied.Core
                     dynamic parsed = DetermineFieldTypeCategory(childField.FieldType) switch
                     {   FieldTypeCategory.Array => MapArray(childField, childValue, childPath)
                     ,   FieldTypeCategory.Object => MapObject(childField, childValue, childPath)
-                    ,   FieldTypeCategory.Value => MapField(childField, childValue, childPath)
+                    ,   FieldTypeCategory.Value => MapField(childField, childField.FieldType, childValue, childPath)
                     ,   _ => throw new NotImplementedException()
                     };
 
@@ -126,13 +119,8 @@ namespace BreadTh.StronglyApied.Core
 
             dynamic[] MapArray(FieldInfo field, JToken value, string path)
             {
-                //validate attribute
-                StronglyApiedArrayAttribute arrayAttribute = field.GetCustomAttribute<StronglyApiedArrayAttribute>(false);
-
-                if(arrayAttribute == null)
-                    throw new ModelAttributeException(
-                        $"All array fields must be tagged with StronglyApiedArrayAttribute"
-                    +   $", but none was found at {rootType.FullName}.{path}");
+                StronglyApiedArrayAttribute arrayAttribute = field.GetCustomAttribute<StronglyApiedArrayAttribute>(false)
+                    ?? new StronglyApiedArrayAttribute();
 
                 //validate json content
                 if(value == null || value.Type == JTokenType.Null || value.Type == JTokenType.Undefined)
@@ -170,21 +158,59 @@ namespace BreadTh.StronglyApied.Core
                             resultList.Add(MapObject(field, valueAsArray[index], $"{path}[{index}]"));
                         break;
                     case FieldTypeCategory.Value:
-                            resultList.Add(MapField(field, valueAsArray[index], $"{path}[{index}]"));
+                            resultList.Add(MapField(field, childType, valueAsArray[index], $"{path}[{index}]"));
                         break;
                 }
 
                 return resultList.ToArray();                
             }
 
-            dynamic MapField(FieldInfo field, JToken value, string path)
-            {                
+            dynamic MapField(FieldInfo field, Type type, JToken value, string path)
+            {
                 StronglyApiedFieldBaseAttribute fieldAttribute = field.GetCustomAttribute<StronglyApiedFieldBaseAttribute>(true);
 
-                if(fieldAttribute == null)
-                    throw new ModelAttributeException(
-                        $"All primitive fields must be tagged with a child of StronglyApiedFieldBaseAttribute"
-                    +   $", but none was found at {rootType.FullName}.{path}");
+                if(fieldAttribute is null)
+                {
+                    if(type == typeof(bool))
+                        fieldAttribute = new StronglyApiedBoolAttribute();
+                    else if (type == typeof(bool?))
+                        fieldAttribute = new StronglyApiedBoolAttribute(optional: true);
+
+                    else if (type == typeof(DateTime))
+                        fieldAttribute = new StronglyApiedDateTimeAttribute();
+                    else if (type == typeof(DateTime?))
+                        fieldAttribute = new StronglyApiedDateTimeAttribute(optional: true);
+
+                    else if (type == typeof(decimal))
+                        fieldAttribute = new StronglyApiedDecimalAttribute();
+                    else if (type == typeof(decimal?))
+                        fieldAttribute = new StronglyApiedDecimalAttribute(optional: true);
+
+                    else if (type == typeof(MailAddress))
+                        fieldAttribute = new StronglyApiedEmailAddressAttribute();
+
+                    else if (type == typeof(int))
+                        fieldAttribute = new StronglyApiedIntAttribute();
+                    else if (type == typeof(int?))
+                        fieldAttribute = new StronglyApiedIntAttribute(optional: true);
+
+                    else if (type == typeof(long))
+                        fieldAttribute = new StronglyApiedLongAttribute();
+                    else if (type == typeof(long?))
+                        fieldAttribute = new StronglyApiedLongAttribute(optional: true);
+
+                    else if (type.IsEnum)
+                        fieldAttribute = new StronglyApiedOptionAttribute();
+
+                    else if (type == typeof(string))
+                        fieldAttribute = new StronglyApiedStringAttribute();
+
+                    else
+                        throw new ModelAttributeException(
+                            $"All primitive fields must be tagged with a child of StronglyApiedFieldBaseAttribute"
+                        +   $", but none was found at {rootType.FullName}.{path}"
+                        +   $" and the type {type.FullName} does not have a default implementation");
+                }
 
                 if(value == null || value.Type == JTokenType.Null || value.Type == JTokenType.Undefined)
                 {
@@ -193,12 +219,12 @@ namespace BreadTh.StronglyApied.Core
                     return null;
                 }
 
-                var baseType = field.FieldType.BaseType;
+                var baseType = type.BaseType;
 
                 //does the type inherit ValueOf (and is it implemented correctly)
                 if( baseType.IsGenericType
                 &&  baseType.GetGenericTypeDefinition() == typeof(ValueOf<,>)
-                &&  baseType.GetGenericArguments()[1] == field.FieldType)
+                &&  baseType.GetGenericArguments()[1] == type)
                 {
                     var tryParseOutcome = 
                         fieldAttribute.Parse(baseType.GetGenericArguments()[0], value.ToCultureInvariantString(), path);
@@ -206,7 +232,7 @@ namespace BreadTh.StronglyApied.Core
 
                     if(tryParseOutcome.TryPickT0(out var success, out var error))
                     {
-                        var method = field.FieldType.BaseType.GetMethod("From", BindingFlags.Public | BindingFlags.Static);
+                        var method = type.BaseType.GetMethod("From", BindingFlags.Public | BindingFlags.Static);
                         return method.Invoke(null, new object[]{ success.Value });
                     }
                     else
@@ -219,9 +245,9 @@ namespace BreadTh.StronglyApied.Core
                 {
                     var tryParseOutcome = 
                         fieldAttribute.Parse(
-                            field.FieldType.IsArray 
-                            ?   field.FieldType.GetElementType() 
-                            :   field.FieldType, value.ToCultureInvariantString()
+                            type.IsArray 
+                            ? type.GetElementType() 
+                            : type, value.ToCultureInvariantString()
                         ,   path);
 
                     if(tryParseOutcome.TryPickT0(out var success, out var error))
