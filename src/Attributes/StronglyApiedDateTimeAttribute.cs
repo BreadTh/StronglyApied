@@ -19,13 +19,20 @@ namespace BreadTh.StronglyApied.Attributes
         public override OneOf<ParseSuccess, (ErrorDescription description, dynamic bestParseAttempt)> Parse(
             Type type, string value, string path)
         {
-            if(type != typeof(DateTime))
-                throw new InvalidOperationException(
-                    $"Fields tagged with {typeof(StronglyApiedDateTimeAttribute).FullName} "
-                +   $"must be a DateTime, "
-                +   $"but the given type was {type.FullName}");
-            
             string trimmedValue = value.Trim();
+
+            if(type != typeof(DateTime))
+                if(type == typeof(DateTime?))
+                {
+                    if(string.IsNullOrEmpty(trimmedValue))
+                        return null;
+                }
+                else
+                    throw new InvalidOperationException(
+                        $"Fields tagged with {typeof(StronglyApiedDateTimeAttribute).FullName} "
+                    +   $"must be a DateTime, "
+                    +   $"but the given type was {type.FullName}");
+            
 
             if(exactFormat is null)
                 if(DateTime.TryParse(trimmedValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))

@@ -27,13 +27,19 @@ namespace BreadTh.StronglyApied.Attributes
                     $"Fields tagged with {typeof(StronglyApiedIntAttribute).FullName} "
                 +   $"must be a {typeof(int).FullName}, "
                 +   $"but the given type was {type.FullName}");
-           
-            string trimmedValue = value.Trim();
 
-            if(trimmedValue == "" && optional)
-                return ParseSuccess.From(null);
+            if (string.IsNullOrEmpty(value))
+                if(optional)
+                    return ParseSuccess.From(null);
+                else
+                    return (ErrorDescription.InvalidInt32(value, path), default);
 
-            bool parseSuccessful = int.TryParse(trimmedValue, out int parsedValue);
+            //allow decimals if they're all 0
+            string[] parts = value.Split('.');
+            if (parts.Length != 1 && (parts.Length != 2 || parts[1].Trim(new char[] { ' ', '0' }).Length == 0) )
+                return (ErrorDescription.InvalidInt32(value, path), default);
+            
+            bool parseSuccessful = int.TryParse(parts[0].Trim(), out int parsedValue);
 
             if(!parseSuccessful)
                 return (ErrorDescription.InvalidInt32(value, path), default);
