@@ -24,8 +24,8 @@ namespace BreadTh.StronglyApied.Attributes
             if(type != typeof(DateTime))
                 if(type == typeof(DateTime?))
                 {
-                    if(string.IsNullOrEmpty(trimmedValue))
-                        return null;
+                    if(string.IsNullOrWhiteSpace(trimmedValue))
+                        return ParseSuccess.From(null);
                 }
                 else
                     throw new InvalidOperationException(
@@ -33,7 +33,6 @@ namespace BreadTh.StronglyApied.Attributes
                     +   $"must be a DateTime, "
                     +   $"but the given type was {type.FullName}");
             
-
             if(exactFormat is null)
                 if(DateTime.TryParse(trimmedValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
                     return ParseSuccess.From(result);
