@@ -88,7 +88,7 @@ namespace BreadTh.StronglyApied.Core
                     var childName = childfieldAttribute.name ?? childField.Name;
 
                     var childPath = path + (path == "" ? "" : ".") + childName;
-                    var childValue = value.SelectToken(childName);
+                    var childValue = value.SelectToken("['" + childName + "']");
                     var errorCountBeforeParse = errors.Count;
 
                     dynamic parsed = DetermineFieldTypeCategory(childField.FieldType) switch
