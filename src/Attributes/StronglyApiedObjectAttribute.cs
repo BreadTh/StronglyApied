@@ -3,7 +3,7 @@ using System;
 
 namespace BreadTh.StronglyApied.Attributes
 {
-    [AttributeUsage(AttributeTargets.Field)] 
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)] 
     public sealed class StronglyApiedObjectAttribute : StronglyApiedBaseAttribute
     {
         public readonly bool stringified;

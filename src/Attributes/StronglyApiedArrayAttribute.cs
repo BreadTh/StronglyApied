@@ -2,7 +2,7 @@
 
 namespace BreadTh.StronglyApied.Attributes
 {
-    [AttributeUsage(AttributeTargets.Field)] 
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)] 
     public sealed class StronglyApiedArrayAttribute : Attribute
     {
         public readonly int minLength;

@@ -9,8 +9,8 @@ using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Attributes
 {
-    [AttributeUsage(AttributeTargets.Field)]
-    public sealed class StronglyApiedOptionAttribute : StronglyApiedFieldBaseAttribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public sealed class StronglyApiedOptionAttribute : StronglyApiedFieldOrPropertyBaseAttribute
     {
         public StronglyApiedOptionAttribute(string name = null, bool optional = false) : base(name, optional) { }
 

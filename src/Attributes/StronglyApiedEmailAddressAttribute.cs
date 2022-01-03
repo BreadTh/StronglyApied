@@ -7,8 +7,8 @@ using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Attributes
 {
-    [AttributeUsage(AttributeTargets.Field)] 
-    public sealed class StronglyApiedEmailAddressAttribute : StronglyApiedFieldBaseAttribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)] 
+    public sealed class StronglyApiedEmailAddressAttribute : StronglyApiedFieldOrPropertyBaseAttribute
     {
         public StronglyApiedEmailAddressAttribute(string name = null, bool optional = false) : base(name, optional) { }
 

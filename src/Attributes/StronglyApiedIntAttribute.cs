@@ -6,8 +6,8 @@ using BreadTh.StronglyApied.Attributes.Extending;
 
 namespace BreadTh.StronglyApied.Attributes
 {
-    [AttributeUsage(AttributeTargets.Field)] 
-    public sealed class StronglyApiedIntAttribute : StronglyApiedFieldBaseAttribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)] 
+    public sealed class StronglyApiedIntAttribute : StronglyApiedFieldOrPropertyBaseAttribute
     {
         public readonly int minValue;
         public readonly int maxValue;

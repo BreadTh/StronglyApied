@@ -4,9 +4,9 @@ using OneOf;
 
 namespace BreadTh.StronglyApied.Attributes.Extending
 {
-    public abstract class StronglyApiedFieldBaseAttribute : StronglyApiedBaseAttribute
+    public abstract class StronglyApiedFieldOrPropertyBaseAttribute : StronglyApiedBaseAttribute
     {
-        protected StronglyApiedFieldBaseAttribute(string name, bool optional)
+        protected StronglyApiedFieldOrPropertyBaseAttribute(string name, bool optional)
             : base(name, optional)
         {
 

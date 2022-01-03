@@ -3,23 +3,23 @@ using System.Collections.Generic;
 
 namespace BreadTh.StronglyApied.Core
 {
-    public enum FieldTypeCategory { Array, Object, Value }
+    public enum MemberTypeCategory { Array, Object, Value }
 
     public abstract class ModelMapperBase
     {
         public abstract (object result, List<ErrorDescription> errors) MapModel(string rawbody, Type rootType);
 
-        protected static FieldTypeCategory DetermineFieldTypeCategory(Type type) 
+        protected static MemberTypeCategory DetermineMemberTypeCategory(Type type) 
         {
             ThrowIfTypeUnsupported(type);
 
             if (type.IsArray)
-                return FieldTypeCategory.Array;
+                return MemberTypeCategory.Array;
 
             if (type.IsObject())
-                return FieldTypeCategory.Object;
+                return MemberTypeCategory.Object;
 
-            return FieldTypeCategory.Value;
+            return MemberTypeCategory.Value;
         }
 
         protected static void ThrowIfTypeUnsupported(Type type)
