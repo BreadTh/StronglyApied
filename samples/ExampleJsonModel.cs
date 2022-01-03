@@ -1,8 +1,7 @@
-﻿using BreadTh.StronglyApied.Attributes;
+using BreadTh.StronglyApied.Attributes;
 
 namespace BreadTh.StronglyApied.Samples
 {
-    [StronglyApiedRoot(DataModel.Json)]
     public class ExampleJsonModel
     {
         [StronglyApiedObject()] public Strings strings;

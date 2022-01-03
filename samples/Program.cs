@@ -10,11 +10,10 @@ namespace BreadTh.StronglyApied.Samples
     {
         static void Main()
         {
-            Console.WriteLine(@"Press 'x' to run the XML example or 'j' to run the JSON example");
+            Console.WriteLine(@"Press 'j' to run the JSON example");
 
             Action chosenExample = Console.ReadKey().KeyChar switch 
-            {   'x'  => () => Direct<ExampleXmlModel>(ExampleXmlModel.exampleInput)
-            ,   'j'  => () => Direct<ExampleJsonModel>(ExampleJsonModel.jsonInput)
+            {   'j'  => () => Direct<ExampleJsonModel>(ExampleJsonModel.jsonInput)
             ,   _    => () => Console.WriteLine("SI didn't understand that key :(")
             };
 
