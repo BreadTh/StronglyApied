@@ -44,7 +44,7 @@ namespace BreadTh.StronglyApied.Core
             dynamic MapObject(MemberInfo member, JToken value, string path)
             {
                 var attribute = member.GetCustomAttribute<StronglyApiedObjectAttribute>(inherit: false)
-                    ?? new StronglyApiedObjectAttribute();
+                    ?? new StronglyApiedObjectAttribute(optional: IsNullableReferenceType(member));
 
                 if(value == null || value.Type == JTokenType.Null || value.Type == JTokenType.Undefined)
                 {
@@ -174,7 +174,7 @@ namespace BreadTh.StronglyApied.Core
             dynamic[] MapArray(MemberInfo member, JToken value, string path)
             {
                 StronglyApiedArrayAttribute arrayAttribute = member.GetCustomAttribute<StronglyApiedArrayAttribute>(false)
-                    ?? new StronglyApiedArrayAttribute();
+                    ?? new StronglyApiedArrayAttribute(optional: IsNullableReferenceType(member));
 
                 //validate json content
                 if(value == null || value.Type == JTokenType.Null || value.Type == JTokenType.Undefined)
@@ -260,9 +260,14 @@ namespace BreadTh.StronglyApied.Core
 
                     else if (type.IsEnum)
                         memberAttribute = new StronglyApiedOptionAttribute();
+                    else if (type.IsGenericType
+                        && type.GetGenericTypeDefinition() == typeof(Nullable<>)
+                        && type.GetGenericArguments()[0].IsEnum
+                    )
+                        memberAttribute = new StronglyApiedOptionAttribute(optional: true);
 
                     else if (type == typeof(string))
-                        memberAttribute = new StronglyApiedStringAttribute();
+                        memberAttribute = new StronglyApiedStringAttribute(optional: IsNullableReferenceType(member));
 
                     else
                         throw new ModelAttributeException(
@@ -320,6 +325,23 @@ namespace BreadTh.StronglyApied.Core
                 }
 
             }
+        }
+        private bool IsNullableReferenceType(MemberInfo member)
+        {
+            var writeState =
+                member is FieldInfo
+                ? new NullabilityInfoContext().Create((FieldInfo)member).WriteState
+                : new NullabilityInfoContext().Create((PropertyInfo)member).WriteState;
+
+            return writeState switch
+            {
+                NullabilityState.NotNull => false,
+                NullabilityState.Nullable => true,
+                _ => throw new Exception(
+                    "You must enable nullable reference type to automatically infer StronglyApied optionallity on properties/fields. " +
+                    "Either enable reference nullability by adding <Nullable>enable</Nullable> to your .csproj, or" +
+                    "Explicitly decorate your reference types with StronglyApiedString, etc")
+            };
         }
     }
 }

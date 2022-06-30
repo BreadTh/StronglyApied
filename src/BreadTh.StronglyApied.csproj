@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Authors>BreadTh</Authors>
@@ -9,10 +10,10 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/BreadTh/StronglyApied</RepositoryUrl>
     <Copyright>BreadTh</Copyright>
-    <Version>2.0.0.11</Version>
+    <Version>3.0.0.0</Version>
     <PackageProjectUrl>https://github.com/BreadTh/StronglyApied</PackageProjectUrl>
-    <AssemblyVersion>2.0.0.11</AssemblyVersion>
-    <FileVersion>2.0.0.11</FileVersion>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
