@@ -31,15 +31,15 @@ namespace BreadTh.StronglyApied.Core
                 return (default, new List<ErrorDescription>() { ErrorDescription.InvalidInputData(rawbody) });
             }
 
-            //Rather than returning and merging a bunch of lists of ErrorDescriptions, 
+            //Rather than returning and merging a bunch of lists of ErrorDescriptions,
             //the subsequent functions definied in this method
             //make direct reference to the error list below:
             List<ErrorDescription> errors = new List<ErrorDescription>();
-            
+
             object result = MapObjectPostValidation(rootType, rootToken, "");
-            
+
             return (result, errors);
-            
+
             //return types must be dynamic as one cannot infer the field/property types of generics at compiletime.
             dynamic MapObject(MemberInfo member, JToken value, string path)
             {
@@ -56,14 +56,14 @@ namespace BreadTh.StronglyApied.Core
 
                 if(attribute.stringified)
                 {
-                    var type = 
-                        member.MemberType == MemberTypes.Field ? 
-                        ((FieldInfo)member).FieldType : 
+                    var type =
+                        member.MemberType == MemberTypes.Field ?
+                        ((FieldInfo)member).FieldType :
                         ((PropertyInfo)member).PropertyType;
 
                     (object innerResult, List<ErrorDescription> innerErrors) = ModelValidatorImp.Parse(value.ToString(), type);
                     errors.AddRange(innerErrors);
-                    
+
                     return innerResult;
                 }
                 else
@@ -76,10 +76,10 @@ namespace BreadTh.StronglyApied.Core
 
                     Type memberType;
                     if(member.MemberType == MemberTypes.Field)
-                    { 
+                    {
                         var field = member as FieldInfo;
-                        memberType = field.FieldType.IsArray 
-                        ?   field.FieldType.GetElementType() 
+                        memberType = field.FieldType.IsArray
+                        ?   field.FieldType.GetElementType()
                         :   field.FieldType;
                     }
                     else
@@ -119,7 +119,7 @@ namespace BreadTh.StronglyApied.Core
                     if (!childField.FieldType.IsArray || parsed == null)
                         childField.SetValue(result, parsed);
 
-                    //Even if we know that "parsed" is an array, 
+                    //Even if we know that "parsed" is an array,
                     //we can't be certain that it doesn't violate a constriction of the field unless it fully validated.
                     //So if we encountered any errors while parsing the array, don't attempt to actually set it.
                     else if (errorCountBeforeParse != errors.Count)
@@ -154,7 +154,7 @@ namespace BreadTh.StronglyApied.Core
                     if (!childProp.PropertyType.IsArray || parsed == null)
                         childProp.SetValue(result, parsed);
 
-                    //Even if we know that "parsed" is an array, 
+                    //Even if we know that "parsed" is an array,
                     //we can't be certain that it doesn't violate a constriction of the prop unless it fully validated.
                     //So if we encountered any errors while parsing the array, don't attempt to actually set it.
                     else if (errorCountBeforeParse != errors.Count)
@@ -201,7 +201,7 @@ namespace BreadTh.StronglyApied.Core
 
                 //parse content
                 List<dynamic> resultList = new List<dynamic>();
-                
+
                 Type childType;
                 if(member.MemberType == MemberTypes.Field)
                     childType = ((FieldInfo)member).FieldType.GetElementType();
@@ -219,7 +219,7 @@ namespace BreadTh.StronglyApied.Core
                             break;
                     }
 
-                return resultList.ToArray();                
+                return resultList.ToArray();
             }
 
 
@@ -239,6 +239,11 @@ namespace BreadTh.StronglyApied.Core
                         memberAttribute = new StronglyApiedDateTimeAttribute();
                     else if (type == typeof(DateTime?))
                         memberAttribute = new StronglyApiedDateTimeAttribute(optional: true);
+
+                    else if (type == typeof(Guid))
+                        memberAttribute = new StronglyApiedGuidAttribute();
+                    else if (type == typeof(Guid?))
+                        memberAttribute = new StronglyApiedGuidAttribute(optional: true);
 
                     else if (type == typeof(decimal))
                         memberAttribute = new StronglyApiedDecimalAttribute();
@@ -290,7 +295,7 @@ namespace BreadTh.StronglyApied.Core
                 &&  baseType.GetGenericTypeDefinition() == typeof(ValueOf<,>)
                 &&  baseType.GetGenericArguments()[1] == type)
                 {
-                    var tryParseOutcome = 
+                    var tryParseOutcome =
                         memberAttribute.Parse(baseType.GetGenericArguments()[0], value.ToCultureInvariantString(), path);
 
 
@@ -303,14 +308,14 @@ namespace BreadTh.StronglyApied.Core
                     {
                         errors.Add(error.description);
                         return error.bestParseAttempt;
-                    }                    
+                    }
                 }
                 else
                 {
-                    var tryParseOutcome = 
+                    var tryParseOutcome =
                         memberAttribute.Parse(
-                            type.IsArray 
-                            ? type.GetElementType() 
+                            type.IsArray
+                            ? type.GetElementType()
                             : type, value.ToCultureInvariantString()
                         ,   path);
 
@@ -321,7 +326,7 @@ namespace BreadTh.StronglyApied.Core
                         errors.Add(error.description);
                         return error.bestParseAttempt;
                     }
-                    
+
                 }
 
             }
