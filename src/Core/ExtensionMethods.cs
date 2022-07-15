@@ -8,18 +8,19 @@ using ValueOf;
 
 namespace BreadTh.StronglyApied.Core
 {
-    public static class ExtensionMethods 
+    public static class ExtensionMethods
     {
         public static bool IsStruct(this Type type)
         {
             if(type.IsGenericType && type.GetGenericTypeDefinition().ToString() == "System.Nullable`1[T]")
                 return IsStruct(type.GetGenericArguments()[0]);
 
-            return 
-                type.IsValueType 
+            return
+                type.IsValueType
             && !type.IsPrimitive
             && type != typeof(decimal)  //decimal is the only builtin type that's both valuetype and not a primitive.
             && type != typeof(DateTime) //though DateTime is also both - but we want to treat it as a value.
+            && type != typeof(Guid)     //Ditto.
             && !type.IsEnum;
         }
 
@@ -35,7 +36,7 @@ namespace BreadTh.StronglyApied.Core
 
             return type.IsClass;
         }
- 
+
         public static string ToCultureInvariantString(this JToken token) =>
             token.GetType() == typeof(JValue)
             ?   ((JValue) token).ToString(CultureInfo.InvariantCulture)
