@@ -240,6 +240,21 @@ namespace BreadTh.StronglyApied.Core
                     else if (type == typeof(DateTime?))
                         memberAttribute = new StronglyApiedDateTimeAttribute(optional: true);
 
+                    else if (type == typeof(DateTimeOffset))
+                        memberAttribute = new StronglyApiedDateTimeOffsetAttribute();
+                    else if (type == typeof(DateTimeOffset?))
+                        memberAttribute = new StronglyApiedDateTimeOffsetAttribute(optional: true);
+
+                    else if (type == typeof(TimeOnly))
+                        memberAttribute = new StronglyApiedTimeOnlyAttribute();
+                    else if (type == typeof(TimeOnly?))
+                        memberAttribute = new StronglyApiedTimeOnlyAttribute(optional: true);
+
+                    else if (type == typeof(DateOnly))
+                        memberAttribute = new StronglyApiedDateOnlyAttribute();
+                    else if (type == typeof(DateOnly?))
+                        memberAttribute = new StronglyApiedDateOnlyAttribute(optional: true);
+
                     else if (type == typeof(Guid))
                         memberAttribute = new StronglyApiedGuidAttribute();
                     else if (type == typeof(Guid?))

@@ -18,9 +18,12 @@ namespace BreadTh.StronglyApied.Core
             return
                 type.IsValueType
             && !type.IsPrimitive
-            && type != typeof(decimal)  //decimal is the only builtin type that's both valuetype and not a primitive.
-            && type != typeof(DateTime) //though DateTime is also both - but we want to treat it as a value.
-            && type != typeof(Guid)     //Ditto.
+            && type != typeof(decimal)        //decimal is the only builtin type that's both valuetype and not a primitive.
+            && type != typeof(DateTime)       //though DateTime is also both - but we want to treat it as a value.
+            && type != typeof(DateTimeOffset) //Ditto.
+            && type != typeof(TimeOnly)       //Ditto.
+            && type != typeof(DateOnly)       //Ditto.
+            && type != typeof(Guid)           //Ditto.
             && !type.IsEnum;
         }
 
