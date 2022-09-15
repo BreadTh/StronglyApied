@@ -24,7 +24,7 @@ namespace BreadTh.StronglyApied.Core
             try
             {
                 //though technically the root may be any of the json datatypes (yes, even null), we only want to support object as root
-                rootToken = JObject.Load(new JsonTextReader(new StringReader(rawbody.Trim())) { FloatParseHandling = FloatParseHandling.Decimal }, null);
+                rootToken = JObject.Load(new JsonTextReader(new StringReader(rawbody.Trim())) { FloatParseHandling = FloatParseHandling.Decimal, DateParseHandling = DateParseHandling.None }, null);
             }
             catch
             {

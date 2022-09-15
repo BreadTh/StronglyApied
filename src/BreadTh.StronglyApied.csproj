@@ -10,10 +10,10 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/BreadTh/StronglyApied</RepositoryUrl>
     <Copyright>BreadTh</Copyright>
-    <Version>3.0.0.4</Version>
+    <Version>3.0.0.5</Version>
     <PackageProjectUrl>https://github.com/BreadTh/StronglyApied</PackageProjectUrl>
-    <AssemblyVersion>3.0.0.4</AssemblyVersion>
-    <FileVersion>3.0.0.4</FileVersion>
+    <AssemblyVersion>3.0.0.5</AssemblyVersion>
+    <FileVersion>3.0.0.5</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
